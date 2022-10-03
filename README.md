@@ -111,13 +111,12 @@ Size of the mask area when inpainting to blend the new face with the whole image
 
 This is the parameter for [step-5](#step-5).
 
-### Mask blur
+### Mask blur (0-64)
 Size of the blur area when inpainting to blend the new face with the whole image.
 
 This is the parameter for [step-5](#step-5).
 
-### Denoising strength for the entire image
+### Denoising strength for the entire image (0.0-1.0)
 Denoising strength when inpainting to blend the new face with the whole image.
 
 This is the parameter for [step-5](#step-5).
-
