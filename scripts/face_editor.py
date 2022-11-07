@@ -171,6 +171,7 @@ class Script(scripts.Script):
         entire_height = p.height
         entire_prompt = p.prompt
         p.restore_faces = True
+        p.batch_size = 1
 
         shared.state.job_count = len(faces) + 1
 
