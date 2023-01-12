@@ -205,6 +205,9 @@ class Script(scripts.Script):
             mask_image = cv2.cvtColor(cv2.resize(mask_image, dsize=(
                 face.width, face.height)), cv2.COLOR_RGB2RGBA)
 
+            entire_image = cv2.cvtColor(entire_image, cv2.COLOR_RGB2RGBA)
+            entire_mask_image = cv2.cvtColor(entire_mask_image, cv2.COLOR_RGB2RGBA)
+
             entire_image[
                 face.top: face.bottom,
                 face.left: face.right,
@@ -240,12 +243,12 @@ class Script(scripts.Script):
         gray_mask = np.where(mask_image == 0, 47, 255) / 255.0
         return (image * gray_mask).astype('uint8')
 
-    def __crop_face(self, detection_model: RetinaFace, image: Image, face_margin: float, confidence: float) -> list[Face]:
+    def __crop_face(self, detection_model: RetinaFace, image: Image, face_margin: float, confidence: float) -> list:
         with torch.no_grad():
             face_boxes, _ = detection_model.align_multi(image, confidence)
             return self.__crop(image, face_boxes, face_margin)
 
-    def __crop(self, image: Image, face_boxes: list[np.ndarray], face_margin: float) -> list[Face]:
+    def __crop(self, image: Image, face_boxes: list, face_margin: float) -> list:
         image = np.array(image, dtype=np.uint8)
 
         areas = []
