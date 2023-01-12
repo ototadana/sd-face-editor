@@ -200,13 +200,10 @@ class Script(scripts.Script):
             output_images.append(
                 self.__to_masked_image(mask_image, face_image))
 
-            face_image = cv2.cvtColor(cv2.resize(face_image, dsize=(
-                face.width, face.height)), cv2.COLOR_RGB2RGBA)
-            mask_image = cv2.cvtColor(cv2.resize(mask_image, dsize=(
-                face.width, face.height)), cv2.COLOR_RGB2RGBA)
-
-            entire_image = cv2.cvtColor(entire_image, cv2.COLOR_RGB2RGBA)
-            entire_mask_image = cv2.cvtColor(entire_mask_image, cv2.COLOR_RGB2RGBA)
+            face_image = cv2.resize(face_image, dsize=(
+                face.width, face.height))
+            mask_image = cv2.resize(mask_image, dsize=(
+                face.width, face.height))
 
             entire_image[
                 face.top: face.bottom,
