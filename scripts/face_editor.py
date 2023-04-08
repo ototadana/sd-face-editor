@@ -9,7 +9,9 @@ import torch
 from facexlib.detection import RetinaFace, init_detection_model
 from facexlib.parsing import BiSeNet, init_parsing_model
 from facexlib.utils.misc import img2tensor
-from modules.processing import StableDiffusionProcessingImg2Img, process_images
+from modules.processing import (Processed, StableDiffusionProcessing,
+                                StableDiffusionProcessingImg2Img,
+                                process_images)
 from PIL import Image
 from torchvision.transforms.functional import normalize
 
@@ -89,7 +91,7 @@ class Script(scripts.Script):
         return "Face Editor"
 
     def show(self, is_img2img):
-        return is_img2img
+        return True
 
     def ui(self, is_img2img):
         max_face_count = gr.Slider(
@@ -146,7 +148,7 @@ class Script(scripts.Script):
 
     def run(
         self,
-        p: StableDiffusionProcessingImg2Img,
+        o: StableDiffusionProcessing,
         face_margin: float,
         confidence: float,
         strength1: float,
@@ -161,6 +163,39 @@ class Script(scripts.Script):
             "retinaface_resnet50", device=shared.device
         )
 
+        if isinstance(o, StableDiffusionProcessingImg2Img):
+            return self.__proc_image(o, mask_model, detection_model,
+                                     face_margin=face_margin, confidence=confidence,
+                                     strength1=strength1, strength2=strength2,
+                                     max_face_count=max_face_count, mask_size=mask_size,
+                                     mask_blur=mask_blur, prompt_for_face=prompt_for_face)
+        else:
+            shared.state.job_count = o.n_iter * 3
+            res = process_images(o)
+            for i, image in enumerate(res.images):
+                if i == 0 and len(res.images) > 1 and not o.do_not_save_grid:
+                    continue
+                p = StableDiffusionProcessingImg2Img(init_images=[image])
+                p.__dict__.update(o.__dict__)
+                proc = self.__proc_image(p, mask_model, detection_model,
+                                         face_margin=face_margin, confidence=confidence,
+                                         strength1=strength1, strength2=strength2,
+                                         max_face_count=max_face_count, mask_size=mask_size,
+                                         mask_blur=mask_blur, prompt_for_face=prompt_for_face)
+                res.images[i] = proc.images[-1]
+            return res
+
+    def __proc_image(self, p: StableDiffusionProcessingImg2Img,
+                     mask_model: BiSeNet,
+                     detection_model: RetinaFace,
+                     face_margin: float,
+                     confidence: float,
+                     strength1: float,
+                     strength2: float,
+                     max_face_count: int,
+                     mask_size: int,
+                     mask_blur: int,
+                     prompt_for_face: str) -> Processed:
         entire_image = np.array(p.init_images[0])
         faces = self.__crop_face(
             detection_model, p.init_images[0], face_margin, confidence)
@@ -171,8 +206,10 @@ class Script(scripts.Script):
         entire_height = p.height
         entire_prompt = p.prompt
         p.batch_size = 1
+        p.n_iter = 1
 
-        shared.state.job_count = len(faces) + 1
+        if shared.state.job_count == -1:
+            shared.state.job_count = len(faces) + 1
 
         print(f"number of faces: {len(faces)}")
         output_images = []
