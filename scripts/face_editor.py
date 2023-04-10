@@ -177,6 +177,7 @@ class Script(scripts.Script):
                     continue
                 p = StableDiffusionProcessingImg2Img(init_images=[image])
                 p.__dict__.update(o.__dict__)
+                p.width, p.height = image.size
                 proc = self.__proc_image(p, mask_model, detection_model,
                                          face_margin=face_margin, confidence=confidence,
                                          strength1=strength1, strength2=strength2,
