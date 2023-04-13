@@ -208,12 +208,14 @@ class Script(scripts.Script):
         entire_prompt = p.prompt
         p.batch_size = 1
         p.n_iter = 1
+        scripts = p.scripts
 
         if shared.state.job_count == -1:
             shared.state.job_count = len(faces) + 1
 
         print(f"number of faces: {len(faces)}")
         output_images = []
+        p.scripts = None
 
         for face in faces:
             if shared.state.interrupted:
@@ -255,6 +257,7 @@ class Script(scripts.Script):
         output_images.append(self.__to_masked_image(
             entire_mask_image, entire_image))
 
+        p.scripts = scripts
         p.prompt = entire_prompt
         p.width = entire_width
         p.height = entire_height
