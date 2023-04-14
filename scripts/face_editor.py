@@ -135,6 +135,9 @@ class Script(scripts.Script):
             value=0.15,
             label="Denoising strength for the entire image",
         )
+        if not is_img2img:
+            save_original_image = gr.Checkbox(
+                label="Save original image", value=False)
         return [
             face_margin,
             confidence,
@@ -144,6 +147,7 @@ class Script(scripts.Script):
             mask_size,
             mask_blur,
             prompt_for_face,
+            save_original_image,
         ]
 
     def run(
@@ -157,6 +161,7 @@ class Script(scripts.Script):
         mask_size: int,
         mask_blur: int,
         prompt_for_face: str,
+        save_original_image: bool,
     ):
         mask_model = init_parsing_model(device=shared.device)
         detection_model = init_detection_model(
@@ -171,19 +176,31 @@ class Script(scripts.Script):
                                      mask_blur=mask_blur, prompt_for_face=prompt_for_face)
         else:
             shared.state.job_count = o.n_iter * 3
+            if not save_original_image:
+                o.do_not_save_samples = True
             res = process_images(o)
+            o.do_not_save_samples = False
+
+            edited_images = []
+            seed_index = 0
             for i, image in enumerate(res.images):
-                if i == 0 and len(res.images) > 1 and not o.do_not_save_grid:
+                if i < res.index_of_first_image:
                     continue
+
                 p = StableDiffusionProcessingImg2Img(init_images=[image])
                 p.__dict__.update(o.__dict__)
                 p.width, p.height = image.size
+                if seed_index < len(res.all_seeds):
+                    p.seed = res.all_seeds[seed_index]
+                    seed_index += 1
                 proc = self.__proc_image(p, mask_model, detection_model,
                                          face_margin=face_margin, confidence=confidence,
                                          strength1=strength1, strength2=strength2,
                                          max_face_count=max_face_count, mask_size=mask_size,
-                                         mask_blur=mask_blur, prompt_for_face=prompt_for_face)
-                res.images[i] = proc.images[-1]
+                                         mask_blur=mask_blur, prompt_for_face=prompt_for_face,
+                                         pre_proc_image=image)
+                edited_images.append(proc.images[-1])
+            res.images.extend(edited_images)
             return res
 
     def __proc_image(self, p: StableDiffusionProcessingImg2Img,
@@ -196,7 +213,8 @@ class Script(scripts.Script):
                      max_face_count: int,
                      mask_size: int,
                      mask_blur: int,
-                     prompt_for_face: str) -> Processed:
+                     prompt_for_face: str,
+                     pre_proc_image: Image = None) -> Processed:
         entire_image = np.array(p.init_images[0])
         faces = self.__crop_face(
             detection_model, p.init_images[0], face_margin, confidence)
@@ -214,6 +232,8 @@ class Script(scripts.Script):
             shared.state.job_count = len(faces) + 1
 
         print(f"number of faces: {len(faces)}")
+        if len(faces) == 0 and pre_proc_image is not None:
+            return Processed(p, images_list=[pre_proc_image])
         output_images = []
         p.scripts = None
 
