@@ -224,8 +224,8 @@ class Script(scripts.Script):
         faces = faces[:max_face_count]
         entire_mask_image = np.zeros_like(entire_image)
 
-        entire_width = p.width
-        entire_height = p.height
+        entire_width = (p.width // 8) * 8
+        entire_height = (p.height // 8) * 8
         entire_prompt = p.prompt
         p.batch_size = 1
         p.n_iter = 1
