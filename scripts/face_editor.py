@@ -325,7 +325,7 @@ class Script(scripts.Script):
         face_tensor = img2tensor(face_image.astype(
             "float32") / 255.0, float32=True)
         normalize(face_tensor, (0.5, 0.5, 0.5), (0.5, 0.5, 0.5), inplace=True)
-        face_tensor = torch.unsqueeze(face_tensor, 0).cuda()
+        face_tensor = torch.unsqueeze(face_tensor, 0).to(shared.device)
 
         with torch.no_grad():
             face = mask_model(face_tensor)[0]
