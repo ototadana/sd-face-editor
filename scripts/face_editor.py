@@ -166,13 +166,13 @@ class Script(scripts.Script):
         prompt_for_face: str,
         save_original_image: bool,
     ):
+        if hasattr(retinaface, 'device'):
+            retinaface.device = shared.device
+
         mask_model = init_parsing_model(device=shared.device)
         detection_model = init_detection_model(
             "retinaface_resnet50", device=shared.device
         )
-
-        if hasattr(retinaface, 'device'):
-            retinaface.device = shared.device
 
         if isinstance(o, StableDiffusionProcessingImg2Img):
             return self.__proc_image(o, mask_model, detection_model,
