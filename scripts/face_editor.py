@@ -6,7 +6,7 @@ import modules.scripts as scripts
 import modules.shared as shared
 import numpy as np
 import torch
-from facexlib.detection import RetinaFace, init_detection_model
+from facexlib.detection import RetinaFace, init_detection_model, retinaface
 from facexlib.parsing import BiSeNet, init_parsing_model
 from facexlib.utils.misc import img2tensor
 from modules.processing import (Processed, StableDiffusionProcessing,
@@ -170,6 +170,9 @@ class Script(scripts.Script):
         detection_model = init_detection_model(
             "retinaface_resnet50", device=shared.device
         )
+
+        if hasattr(retinaface, 'device'):
+            retinaface.device = shared.device
 
         if isinstance(o, StableDiffusionProcessingImg2Img):
             return self.__proc_image(o, mask_model, detection_model,
