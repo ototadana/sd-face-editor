@@ -141,6 +141,11 @@ class Script(scripts.Script):
             value=False,
             visible=not is_img2img)
 
+        show_intermediate_steps = gr.Checkbox(
+            label="Show intermediate steps",
+            value=False,
+            visible=is_img2img)
+
         return [
             face_margin,
             confidence,
@@ -151,6 +156,7 @@ class Script(scripts.Script):
             mask_blur,
             prompt_for_face,
             save_original_image,
+            show_intermediate_steps,
         ]
 
     def run(
@@ -165,6 +171,7 @@ class Script(scripts.Script):
         mask_blur: int,
         prompt_for_face: str,
         save_original_image: bool,
+        show_intermediate_steps: bool,
     ):
         if hasattr(retinaface, 'device'):
             retinaface.device = shared.device
@@ -179,7 +186,8 @@ class Script(scripts.Script):
                                      face_margin=face_margin, confidence=confidence,
                                      strength1=strength1, strength2=strength2,
                                      max_face_count=max_face_count, mask_size=mask_size,
-                                     mask_blur=mask_blur, prompt_for_face=prompt_for_face)
+                                     mask_blur=mask_blur, prompt_for_face=prompt_for_face,
+                                     show_intermediate_steps=show_intermediate_steps)
         else:
             shared.state.job_count = o.n_iter * 3
             if not save_original_image:
@@ -220,7 +228,8 @@ class Script(scripts.Script):
                      mask_size: int,
                      mask_blur: int,
                      prompt_for_face: str,
-                     pre_proc_image: Image = None) -> Processed:
+                     pre_proc_image: Image = None,
+                     show_intermediate_steps: bool = False) -> Processed:
         entire_image = np.array(p.init_images[0])
         faces = self.__crop_face(
             detection_model, p.init_images[0], face_margin, confidence)
@@ -261,9 +270,10 @@ class Script(scripts.Script):
             mask_image = self.__to_mask_image(
                 mask_model, face_image, mask_size)
 
-            output_images.append(face_image)
-            output_images.append(
-                self.__to_masked_image(mask_image, face_image))
+            if show_intermediate_steps:
+                output_images.append(Image.fromarray(face_image))
+                output_images.append(Image.fromarray(
+                    self.__to_masked_image(mask_image, face_image)))
 
             face_image = cv2.resize(face_image, dsize=(
                 face.width, face.height))
@@ -279,10 +289,6 @@ class Script(scripts.Script):
                 face.left: face.right,
             ] = mask_image
 
-        output_images.append(entire_image)
-        output_images.append(self.__to_masked_image(
-            entire_mask_image, entire_image))
-
         p.scripts = scripts
         p.prompt = entire_prompt
         p.width = entire_width
@@ -296,9 +302,12 @@ class Script(scripts.Script):
         p.do_not_save_samples = False
         proc = process_images(p)
 
-        final_image = proc.images[0]
-        proc.images = output_images
-        proc.images.append(final_image)
+        if show_intermediate_steps:
+            output_images.append(p.init_images[0])
+            output_images.append(Image.fromarray(
+                self.__to_masked_image(entire_mask_image, entire_image)))
+            output_images.append(proc.images[0])
+            proc.images = output_images
 
         return proc
 
