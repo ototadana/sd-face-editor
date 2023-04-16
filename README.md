@@ -19,7 +19,6 @@ So, it is a good idea to start with the **PNG Info** tab.
 1.  Click **PNG Info** tab.
 2.  Upload the image to be edited.
 3.  Click **Send to img2img** button.
-4.  Upload the image in the **img2img** tab again.
 
 ### 2. Open Face Editor and Generate
 1.  In the img2img tab, select **Face Editor** script.
@@ -118,5 +117,12 @@ This is the parameter for [step-5](#step-5).
 
 ### Denoising strength for the entire image (0.0-1.0)
 Denoising strength when inpainting to blend the new face with the whole image.
+If the border lines are too prominent, increase this value.
 
 This is the parameter for [step-5](#step-5).
+
+### Save Original Image (txt2img only)
+Specify whether to save the image before modification.
+
+### Show intermediate steps (img2img only)
+Specifies whether to display images of detected faces and masks.
