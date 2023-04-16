@@ -257,6 +257,9 @@ class Script(scripts.Script):
 
             proc = process_images(p)
 
+            if proc.images[0].mode != 'RGB':
+                proc.images[0] = proc.images[0].convert('RGB')
+
             face_image = np.array(proc.images[0])
             mask_image = self.__to_mask_image(
                 mask_model, face_image, mask_size)
