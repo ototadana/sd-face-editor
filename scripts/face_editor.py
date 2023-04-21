@@ -136,6 +136,11 @@ class Script(scripts.Script):
             label="Denoising strength for the entire image",
         )
 
+        apply_inside_mask_only = gr.Checkbox(
+            label="Apply inside mask only",
+            value=False
+        )
+
         save_original_image = gr.Checkbox(
             label="Save original image",
             value=False,
@@ -155,6 +160,7 @@ class Script(scripts.Script):
             mask_size,
             mask_blur,
             prompt_for_face,
+            apply_inside_mask_only,
             save_original_image,
             show_intermediate_steps,
         ]
@@ -170,6 +176,7 @@ class Script(scripts.Script):
         mask_size: int,
         mask_blur: int,
         prompt_for_face: str,
+        apply_inside_mask_only: bool,
         save_original_image: bool,
         show_intermediate_steps: bool,
     ):
@@ -187,6 +194,7 @@ class Script(scripts.Script):
                                      strength1=strength1, strength2=strength2,
                                      max_face_count=max_face_count, mask_size=mask_size,
                                      mask_blur=mask_blur, prompt_for_face=prompt_for_face,
+                                     apply_inside_mask_only=apply_inside_mask_only,
                                      show_intermediate_steps=show_intermediate_steps)
         else:
             shared.state.job_count = o.n_iter * 3
@@ -212,6 +220,7 @@ class Script(scripts.Script):
                                          strength1=strength1, strength2=strength2,
                                          max_face_count=max_face_count, mask_size=mask_size,
                                          mask_blur=mask_blur, prompt_for_face=prompt_for_face,
+                                         apply_inside_mask_only=apply_inside_mask_only,
                                          pre_proc_image=image)
                 edited_images.append(proc.images[-1])
             res.images.extend(edited_images)
@@ -228,6 +237,7 @@ class Script(scripts.Script):
                      mask_size: int,
                      mask_blur: int,
                      prompt_for_face: str,
+                     apply_inside_mask_only: bool,
                      pre_proc_image: Image = None,
                      show_intermediate_steps: bool = False) -> Processed:
         entire_image = np.array(p.init_images[0])
@@ -282,6 +292,16 @@ class Script(scripts.Script):
                 face.width, face.height))
             mask_image = cv2.resize(mask_image, dsize=(
                 face.width, face.height))
+
+            if apply_inside_mask_only:
+                face_background = entire_image[
+                    face.top: face.bottom,
+                    face.left: face.right,
+                ]
+                face_fg = (face_image * (mask_image/255.0)).astype('uint8')
+                face_bg = (face_background *
+                           (1 - (mask_image/255.0))).astype('uint8')
+                face_image = face_fg + face_bg
 
             entire_image[
                 face.top: face.bottom,
