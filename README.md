@@ -121,7 +121,12 @@ If the border lines are too prominent, increase this value.
 
 This is the parameter for [step-5](#step-5).
 
-### Save Original Image (txt2img only)
+### Apply inside mask only
+Paste an image cut out in the shape of a face instead of a square image.
+
+This is the parameter for [step-4](#step-4).
+
+### Save original image (txt2img only)
 Specify whether to save the image before modification.
 
 ### Show intermediate steps (img2img only)
