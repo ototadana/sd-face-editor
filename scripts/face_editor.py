@@ -205,6 +205,7 @@ class Script(scripts.Script):
 
             edited_images = []
             seed_index = 0
+            subseed_index = 0
             for i, image in enumerate(res.images):
                 if i < res.index_of_first_image:
                     continue
@@ -215,6 +216,9 @@ class Script(scripts.Script):
                 if seed_index < len(res.all_seeds):
                     p.seed = res.all_seeds[seed_index]
                     seed_index += 1
+                if subseed_index < len(res.all_subseeds):
+                    p.subseed = res.all_subseeds[subseed_index]
+                    subseed_index += 1
                 proc = self.__proc_image(p, mask_model, detection_model,
                                          face_margin=face_margin, confidence=confidence,
                                          strength1=strength1, strength2=strength2,
