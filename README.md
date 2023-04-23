@@ -121,8 +121,15 @@ If the border lines are too prominent, increase this value.
 
 This is the parameter for [step-5](#step-5).
 
-### Save Original Image (txt2img only)
+### Apply inside mask only
+Paste an image cut out in the shape of a face instead of a square image.
+For more information, please see: [here](https://github.com/ototadana/sd-face-editor/issues/33).
+
+This is the parameter for [step-4](#step-4).
+
+### Save original image (txt2img only)
 Specify whether to save the image before modification.
+For more information, please see: [here](https://github.com/ototadana/sd-face-editor/issues/7#issuecomment-1505091410).
 
 ### Show intermediate steps (img2img only)
 Specifies whether to display images of detected faces and masks.
