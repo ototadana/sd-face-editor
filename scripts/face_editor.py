@@ -188,7 +188,7 @@ class Script(scripts.Script):
             "retinaface_resnet50", device=shared.device
         )
 
-        if isinstance(o, StableDiffusionProcessingImg2Img):
+        if isinstance(o, StableDiffusionProcessingImg2Img) and o.n_iter == 1 and o.batch_size == 1:
             return self.__proc_image(o, mask_model, detection_model,
                                      face_margin=face_margin, confidence=confidence,
                                      strength1=strength1, strength2=strength2,
@@ -212,6 +212,7 @@ class Script(scripts.Script):
 
                 p = StableDiffusionProcessingImg2Img(init_images=[image])
                 p.__dict__.update(o.__dict__)
+                p.init_images = [image]
                 p.width, p.height = image.size
                 if seed_index < len(res.all_seeds):
                     p.seed = res.all_seeds[seed_index]
