@@ -227,7 +227,7 @@ class Script(scripts.Script):
                                          mask_blur=mask_blur, prompt_for_face=prompt_for_face,
                                          apply_inside_mask_only=apply_inside_mask_only,
                                          pre_proc_image=image)
-                edited_images.append(proc.images[-1])
+                edited_images.extend(proc.images)
             res.images.extend(edited_images)
             return res
 
