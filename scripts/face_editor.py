@@ -151,6 +151,10 @@ class Script(scripts.Script):
             value=False,
             visible=is_img2img)
 
+        apply_scripts_to_faces = gr.Checkbox(
+            label="Apply scripts to faces",
+            value=False)
+
         return [
             face_margin,
             confidence,
@@ -163,6 +167,7 @@ class Script(scripts.Script):
             apply_inside_mask_only,
             save_original_image,
             show_intermediate_steps,
+            apply_scripts_to_faces,
         ]
 
     def run(
@@ -179,6 +184,7 @@ class Script(scripts.Script):
         apply_inside_mask_only: bool,
         save_original_image: bool,
         show_intermediate_steps: bool,
+        apply_scripts_to_faces: bool,
     ):
         if hasattr(retinaface, 'device'):
             retinaface.device = shared.device
@@ -188,14 +194,15 @@ class Script(scripts.Script):
             "retinaface_resnet50", device=shared.device
         )
 
-        if isinstance(o, StableDiffusionProcessingImg2Img) and o.n_iter == 1 and o.batch_size == 1:
+        if isinstance(o, StableDiffusionProcessingImg2Img) and o.n_iter == 1 and o.batch_size == 1 and not apply_scripts_to_faces:
             return self.__proc_image(o, mask_model, detection_model,
                                      face_margin=face_margin, confidence=confidence,
                                      strength1=strength1, strength2=strength2,
                                      max_face_count=max_face_count, mask_size=mask_size,
                                      mask_blur=mask_blur, prompt_for_face=prompt_for_face,
                                      apply_inside_mask_only=apply_inside_mask_only,
-                                     show_intermediate_steps=show_intermediate_steps)
+                                     show_intermediate_steps=show_intermediate_steps,
+                                     apply_scripts_to_faces=apply_scripts_to_faces)
         else:
             shared.state.job_count = o.n_iter * 3
             if not save_original_image:
@@ -226,7 +233,8 @@ class Script(scripts.Script):
                                          max_face_count=max_face_count, mask_size=mask_size,
                                          mask_blur=mask_blur, prompt_for_face=prompt_for_face,
                                          apply_inside_mask_only=apply_inside_mask_only,
-                                         pre_proc_image=image)
+                                         pre_proc_image=image,
+                                         apply_scripts_to_faces=apply_scripts_to_faces)
                 edited_images.extend(proc.images)
             res.images.extend(edited_images)
             return res
@@ -244,7 +252,8 @@ class Script(scripts.Script):
                      prompt_for_face: str,
                      apply_inside_mask_only: bool,
                      pre_proc_image: Image = None,
-                     show_intermediate_steps: bool = False) -> Processed:
+                     show_intermediate_steps: bool = False,
+                     apply_scripts_to_faces: bool = False) -> Processed:
         if hasattr(p.init_images[0], 'mode') and p.init_images[0].mode != 'RGB':
             p.init_images[0] = p.init_images[0].convert('RGB')
 
@@ -268,7 +277,8 @@ class Script(scripts.Script):
         if len(faces) == 0 and pre_proc_image is not None:
             return Processed(p, images_list=[pre_proc_image])
         output_images = []
-        p.scripts = None
+        if not apply_scripts_to_faces:
+            p.scripts = None
 
         for face in faces:
             if shared.state.interrupted:
