@@ -245,6 +245,9 @@ class Script(scripts.Script):
                      apply_inside_mask_only: bool,
                      pre_proc_image: Image = None,
                      show_intermediate_steps: bool = False) -> Processed:
+        if hasattr(p.init_images[0], 'mode') and p.init_images[0].mode != 'RGB':
+            p.init_images[0] = p.init_images[0].convert('RGB')
+
         entire_image = np.array(p.init_images[0])
         faces = self.__crop_face(
             detection_model, p.init_images[0], face_margin, confidence)
