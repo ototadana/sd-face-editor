@@ -143,8 +143,8 @@ class Script(scripts.Script):
 
         save_original_image = gr.Checkbox(
             label="Save original image",
-            value=False,
-            visible=not is_img2img)
+            value=False
+        )
 
         show_intermediate_steps = gr.Checkbox(
             label="Show intermediate steps",
@@ -170,6 +170,16 @@ class Script(scripts.Script):
             apply_scripts_to_faces,
         ]
 
+    def get_face_models(self):
+        if hasattr(retinaface, 'device'):
+            retinaface.device = shared.device
+
+        mask_model = init_parsing_model(device=shared.device)
+        detection_model = init_detection_model(
+            "retinaface_resnet50", device=shared.device
+        )
+        return (mask_model, detection_model)
+
     def run(
         self,
         o: StableDiffusionProcessing,
@@ -186,13 +196,8 @@ class Script(scripts.Script):
         show_intermediate_steps: bool,
         apply_scripts_to_faces: bool,
     ):
-        if hasattr(retinaface, 'device'):
-            retinaface.device = shared.device
 
-        mask_model = init_parsing_model(device=shared.device)
-        detection_model = init_detection_model(
-            "retinaface_resnet50", device=shared.device
-        )
+        mask_model, detection_model = self.get_face_models()
 
         if isinstance(o, StableDiffusionProcessingImg2Img) and o.n_iter == 1 and o.batch_size == 1 and not apply_scripts_to_faces:
             return self.__proc_image(o, mask_model, detection_model,
@@ -210,34 +215,60 @@ class Script(scripts.Script):
             res = process_images(o)
             o.do_not_save_samples = False
 
-            edited_images = []
-            seed_index = 0
-            subseed_index = 0
-            for i, image in enumerate(res.images):
-                if i < res.index_of_first_image:
-                    continue
+            return self.proc_images(mask_model, detection_model, o, res,
+                                    face_margin=face_margin, confidence=confidence,
+                                    strength1=strength1, strength2=strength2,
+                                    max_face_count=max_face_count, mask_size=mask_size,
+                                    mask_blur=mask_blur, prompt_for_face=prompt_for_face,
+                                    apply_inside_mask_only=apply_inside_mask_only,
+                                    apply_scripts_to_faces=apply_scripts_to_faces,
+                                    )
 
-                p = StableDiffusionProcessingImg2Img(init_images=[image])
-                p.__dict__.update(o.__dict__)
-                p.init_images = [image]
-                p.width, p.height = image.size
-                if seed_index < len(res.all_seeds):
-                    p.seed = res.all_seeds[seed_index]
-                    seed_index += 1
-                if subseed_index < len(res.all_subseeds):
-                    p.subseed = res.all_subseeds[subseed_index]
-                    subseed_index += 1
-                proc = self.__proc_image(p, mask_model, detection_model,
-                                         face_margin=face_margin, confidence=confidence,
-                                         strength1=strength1, strength2=strength2,
-                                         max_face_count=max_face_count, mask_size=mask_size,
-                                         mask_blur=mask_blur, prompt_for_face=prompt_for_face,
-                                         apply_inside_mask_only=apply_inside_mask_only,
-                                         pre_proc_image=image,
-                                         apply_scripts_to_faces=apply_scripts_to_faces)
-                edited_images.extend(proc.images)
-            res.images.extend(edited_images)
-            return res
+    def proc_images(
+        self,
+        mask_model: BiSeNet,
+        detection_model: RetinaFace,
+        o: StableDiffusionProcessing,
+        res: Processed,
+        face_margin: float,
+        confidence: float,
+        strength1: float,
+        strength2: float,
+        max_face_count: int,
+        mask_size: int,
+        mask_blur: int,
+        prompt_for_face: str,
+        apply_inside_mask_only: bool,
+        apply_scripts_to_faces: bool,
+    ):
+        edited_images = []
+        seed_index = 0
+        subseed_index = 0
+        for i, image in enumerate(res.images):
+            if i < res.index_of_first_image:
+                continue
+
+            p = StableDiffusionProcessingImg2Img(init_images=[image])
+            p.__dict__.update(o.__dict__)
+            p.init_images = [image]
+            p.width, p.height = image.size
+            if seed_index < len(res.all_seeds):
+                p.seed = res.all_seeds[seed_index]
+                seed_index += 1
+            if subseed_index < len(res.all_subseeds):
+                p.subseed = res.all_subseeds[subseed_index]
+                subseed_index += 1
+            proc = self.__proc_image(p, mask_model, detection_model,
+                                     face_margin=face_margin, confidence=confidence,
+                                     strength1=strength1, strength2=strength2,
+                                     max_face_count=max_face_count, mask_size=mask_size,
+                                     mask_blur=mask_blur, prompt_for_face=prompt_for_face,
+                                     apply_inside_mask_only=apply_inside_mask_only,
+                                     pre_proc_image=image,
+                                     apply_scripts_to_faces=apply_scripts_to_faces)
+            edited_images.extend(proc.images)
+        res.images.extend(edited_images)
+        return res
 
     def __proc_image(self, p: StableDiffusionProcessingImg2Img,
                      mask_model: BiSeNet,
