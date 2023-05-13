@@ -132,13 +132,13 @@ class Script(scripts.Script):
             minimum=0.0,
             maximum=1.0,
             step=0.05,
-            value=0.15,
-            label="Denoising strength for the entire image",
+            value=0.0,
+            label="Denoising strength for the entire image ",
         )
 
         apply_inside_mask_only = gr.Checkbox(
-            label="Apply inside mask only",
-            value=False
+            label="Apply inside mask only ",
+            value=True
         )
 
         save_original_image = gr.Checkbox(
