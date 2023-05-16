@@ -148,8 +148,7 @@ class Script(scripts.Script):
 
         show_intermediate_steps = gr.Checkbox(
             label="Show intermediate steps",
-            value=False,
-            visible=is_img2img)
+            value=False)
 
         apply_scripts_to_faces = gr.Checkbox(
             label="Apply scripts to faces",
@@ -221,6 +220,7 @@ class Script(scripts.Script):
                                     max_face_count=max_face_count, mask_size=mask_size,
                                     mask_blur=mask_blur, prompt_for_face=prompt_for_face,
                                     apply_inside_mask_only=apply_inside_mask_only,
+                                    show_intermediate_steps=show_intermediate_steps,
                                     apply_scripts_to_faces=apply_scripts_to_faces,
                                     )
 
@@ -239,6 +239,7 @@ class Script(scripts.Script):
         mask_blur: int,
         prompt_for_face: str,
         apply_inside_mask_only: bool,
+        show_intermediate_steps: bool,
         apply_scripts_to_faces: bool,
     ):
         edited_images = []
@@ -265,6 +266,7 @@ class Script(scripts.Script):
                                      mask_blur=mask_blur, prompt_for_face=prompt_for_face,
                                      apply_inside_mask_only=apply_inside_mask_only,
                                      pre_proc_image=image,
+                                     show_intermediate_steps=show_intermediate_steps,
                                      apply_scripts_to_faces=apply_scripts_to_faces)
             edited_images.extend(proc.images)
         res.images.extend(edited_images)
