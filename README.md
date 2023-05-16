@@ -179,7 +179,7 @@ This is the parameter for [step-4](#step-4).
 Specify whether to save the image before modification.
 For more information, please see: [here](https://github.com/ototadana/sd-face-editor/issues/7#issuecomment-1505091410).
 
-### Show intermediate steps (img2img only)
+### Show intermediate steps
 Specifies whether to display images of detected faces and masks.
 
 ### Apply scripts to faces

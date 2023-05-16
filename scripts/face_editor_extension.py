@@ -54,18 +54,23 @@ class FaceEditorExtension(scripts.Script):
         if not enabled or self.__is_running:
             return
 
-        o.do_not_save_samples = False
-        script = face_editor.Script()
-        mask_model, detection_model = script.get_face_models()
-
         try:
             self.__is_running = True
+
+            if o.scripts is not None:
+                o.scripts.postprocess(o, res)
+
+            o.do_not_save_samples = False
+            script = face_editor.Script()
+            mask_model, detection_model = script.get_face_models()
+
             script.proc_images(mask_model, detection_model, o, res,
                                face_margin=face_margin, confidence=confidence,
                                strength1=strength1, strength2=strength2,
                                max_face_count=max_face_count, mask_size=mask_size,
                                mask_blur=mask_blur, prompt_for_face=prompt_for_face,
                                apply_inside_mask_only=apply_inside_mask_only,
+                               show_intermediate_steps=show_intermediate_steps,
                                apply_scripts_to_faces=apply_scripts_to_faces,
                                )
 
