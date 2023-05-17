@@ -17,8 +17,7 @@ This software improves facial images in these features:
 2. Enter "https://github.com/ototadana/sd-face-editor.git" in the "URL of the extension's git repository" field.
    ![Install from URL](./images/setup-01.png)
 3. Click the "Install" button and wait for the "Installed into /home/ototadana/stable-diffusion-webui/extensions/sd-face-editor. Use Installed tab to restart." message to appear.
-4. Restart the Stable Diffusion Web UI.
-5. Go to "Installed" tab and click "Apply and restart UI".
+4. Go to "Installed" tab and click "Apply and restart UI".
 
 
 ## Usage
@@ -48,7 +47,7 @@ If you feel uncomfortable with the facial contours, try increasing the **"Mask s
 ### Change facial expression
 Use **"Prompt for face"** option if you want to change the facial expression.
 
-![Mask size](./images/tips-03.png)
+![Prompt for face](./images/tips-03.png)
 
 ### Fixing images that already exist
 If you wish to modify the face of an already existing image instead of creating a new one, follow these steps:
