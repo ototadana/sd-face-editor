@@ -10,7 +10,7 @@ class FaceEditorExtension(scripts.Script):
         self.__is_running = False
 
     def title(self):
-        return "Face Editor"
+        return "Face Editor EX"
 
     def show(self, is_img2img):
         return scripts.AlwaysVisible
@@ -53,6 +53,20 @@ class FaceEditorExtension(scripts.Script):
                     apply_scripts_to_faces: bool):
         if not enabled or self.__is_running:
             return
+
+        if isinstance(enabled, dict):
+            face_margin = enabled.get("face_margin", face_margin)
+            confidence = enabled.get("confidence", confidence)
+            strength1 = enabled.get("strength1", strength1)
+            strength2 = enabled.get("strength2", strength2)
+            max_face_count = enabled.get("max_face_count", max_face_count)
+            mask_size = enabled.get("mask_size", mask_size)
+            mask_blur = enabled.get("mask_blur", mask_blur)
+            prompt_for_face = enabled.get("prompt_for_face", prompt_for_face)
+            apply_inside_mask_only = enabled.get("apply_inside_mask_only", apply_inside_mask_only)
+            save_original_image = enabled.get("save_original_image", save_original_image)
+            show_intermediate_steps = enabled.get("show_intermediate_steps", show_intermediate_steps)
+            apply_scripts_to_faces = enabled.get("apply_scripts_to_faces", apply_scripts_to_faces)
 
         try:
             self.__is_running = True
