@@ -71,6 +71,7 @@ You can control facial expressions with ControlNet by enabled **"Apply scripts t
 
 However, care must be taken when using this option: the ControlNet input image must be specified only in img2img, and nothing must be specified in the ControlNet panel. Specifying it in the ControlNet panel will completely collapse the image.
 
+For more information, please see: [here](https://github.com/ototadana/sd-face-editor/issues/41#issuecomment-1537340496).
 
 ## How it works
 This script performs the following steps:
@@ -170,12 +171,14 @@ This is the parameter for [step-5](#step-5).
 
 ### Apply inside mask only
 Paste an image cut out in the shape of a face instead of a square image.
-For more information, please see: [here](https://github.com/ototadana/sd-face-editor/issues/33).
 
 This is the parameter for [step-4](#step-4).
 
+For more information, please see: [here](https://github.com/ototadana/sd-face-editor/issues/33).
+
 ### Save original image
 Specify whether to save the image before modification.
+
 For more information, please see: [here](https://github.com/ototadana/sd-face-editor/issues/7#issuecomment-1505091410).
 
 ### Show intermediate steps
@@ -183,3 +186,21 @@ Specifies whether to display images of detected faces and masks.
 
 ### Apply scripts to faces
 Normally, no other scripts are executed during face image generation, but by enabling this option, they will be.
+
+For more information, please see: [here](https://github.com/ototadana/sd-face-editor/issues/41#issuecomment-1537340496).
+
+
+## API
+If you want to use this script as an extension (alwayson_scripts) in the [API](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/API), specify **"face editor ex"** as the script name as follows:
+
+```
+    "alwayson_scripts": {
+        "face editor ex": {
+            "args": [{"prompt_for_face": "smile"}]
+        },
+```
+
+- By specifying an object as the first argument of args as above, parameters can be specified by keywords.
+- See [source code](https://github.com/ototadana/sd-face-editor/blob/main/scripts/face_editor_extension.py) for available keywords
+
+For more information, please see: [here](https://github.com/ototadana/sd-face-editor/issues/57).
