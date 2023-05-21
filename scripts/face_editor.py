@@ -242,9 +242,14 @@ class Script(scripts.Script):
         show_intermediate_steps: bool,
         apply_scripts_to_faces: bool,
     ):
-        edited_images = []
+        edited_images, all_seeds, all_prompts, infotexts = [], [], [], []
         seed_index = 0
         subseed_index = 0
+
+        self.__extend_infos(res.all_prompts, len(res.images))
+        self.__extend_infos(res.all_seeds, len(res.images))
+        self.__extend_infos(res.infotexts, len(res.images))
+
         for i, image in enumerate(res.images):
             if i < res.index_of_first_image:
                 continue
@@ -269,7 +274,14 @@ class Script(scripts.Script):
                                      show_intermediate_steps=show_intermediate_steps,
                                      apply_scripts_to_faces=apply_scripts_to_faces)
             edited_images.extend(proc.images)
+            all_seeds.extend(proc.all_seeds)
+            all_prompts.extend(proc.all_prompts)
+            infotexts.extend(proc.infotexts)
+
         res.images.extend(edited_images)
+        res.all_seeds.extend(all_seeds)
+        res.all_prompts.extend(all_prompts)
+        res.infotexts.extend(infotexts)
         return res
 
     def __proc_image(self, p: StableDiffusionProcessingImg2Img,
@@ -308,7 +320,7 @@ class Script(scripts.Script):
 
         print(f"number of faces: {len(faces)}")
         if len(faces) == 0 and pre_proc_image is not None:
-            return Processed(p, images_list=[pre_proc_image])
+            return Processed(p, images_list=[pre_proc_image], all_prompts=[p.prompt], all_seeds=[p.seed], infotexts=[""])
         output_images = []
         if not apply_scripts_to_faces:
             p.scripts = None
@@ -383,7 +395,14 @@ class Script(scripts.Script):
             output_images.append(proc.images[0])
             proc.images = output_images
 
+        self.__extend_infos(proc.all_prompts, len(proc.images))
+        self.__extend_infos(proc.all_seeds, len(proc.images))
+        self.__extend_infos(proc.infotexts, len(proc.images))
+
         return proc
+
+    def __extend_infos(self, infos: list, image_count: int):
+        return infos.extend([infos[0]] * (image_count - len(infos)))
 
     def __to_masked_image(self, mask_image: np.ndarray, image: np.ndarray) -> np.ndarray:
         gray_mask = np.where(mask_image == 0, 47, 255) / 255.0
