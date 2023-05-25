@@ -17,7 +17,7 @@ from torchvision.transforms.functional import normalize
 
 
 class Face:
-    def __init__(self, entire_image: np.ndarray, face_box: np.ndarray, face_margin: float):
+    def __init__(self, entire_image: np.ndarray, face_box: np.ndarray, face_margin: float, face_size: int):
         left, top, right, bottom = self.__to_square(face_box)
 
         self.left, self.top, self.right, self.bottom = self.__ensure_margin(
@@ -26,15 +26,16 @@ class Face:
         self.width = self.right - self.left
         self.height = self.bottom - self.top
 
-        self.image = self.__crop_face_image(entire_image)
+        self.image = self.__crop_face_image(entire_image, face_size)
 
-    def __crop_face_image(self, entire_image: np.ndarray):
+    def __crop_face_image(self, entire_image: np.ndarray, face_size: int):
         cropped = entire_image[self.top: self.bottom, self.left: self.right, :]
         return Image.fromarray(
-            cv2.resize(cropped, dsize=(512, 512)))
+            cv2.resize(cropped, dsize=(face_size, face_size)))
 
     def __to_square(self, face_box: np.ndarray):
         left, top, right, bottom, *_ = list(map(int, face_box))
+        self.face_area = left, top, right, bottom
 
         width = right - left
         height = bottom - top
@@ -111,6 +112,11 @@ class Script(scripts.Script):
         face_margin = gr.Slider(
             minimum=1.0, maximum=2.0, step=0.1, value=1.6, label="Face margin"
         )
+        use_minimal_area = gr.Checkbox(
+            label="Use minimal area for face selection",
+            value=False)
+        face_size = gr.Slider(label="Size of the face when recreating",
+                              minimum=64, maximum=2048, step=16, value=512)
         prompt_for_face = gr.Textbox(
             show_label=False,
             placeholder="Prompt for face",
@@ -167,6 +173,8 @@ class Script(scripts.Script):
             save_original_image,
             show_intermediate_steps,
             apply_scripts_to_faces,
+            face_size,
+            use_minimal_area,
         ]
 
     def get_face_models(self):
@@ -194,6 +202,8 @@ class Script(scripts.Script):
         save_original_image: bool,
         show_intermediate_steps: bool,
         apply_scripts_to_faces: bool,
+        face_size: int,
+        use_minimal_area: bool,
     ):
 
         mask_model, detection_model = self.get_face_models()
@@ -206,7 +216,9 @@ class Script(scripts.Script):
                                      mask_blur=mask_blur, prompt_for_face=prompt_for_face,
                                      apply_inside_mask_only=apply_inside_mask_only,
                                      show_intermediate_steps=show_intermediate_steps,
-                                     apply_scripts_to_faces=apply_scripts_to_faces)
+                                     apply_scripts_to_faces=apply_scripts_to_faces,
+                                     face_size=face_size,
+                                     use_minimal_area=use_minimal_area)
         else:
             shared.state.job_count = o.n_iter * 3
             if not save_original_image:
@@ -222,7 +234,8 @@ class Script(scripts.Script):
                                     apply_inside_mask_only=apply_inside_mask_only,
                                     show_intermediate_steps=show_intermediate_steps,
                                     apply_scripts_to_faces=apply_scripts_to_faces,
-                                    )
+                                    face_size=face_size,
+                                    use_minimal_area=use_minimal_area)
 
     def proc_images(
         self,
@@ -241,6 +254,8 @@ class Script(scripts.Script):
         apply_inside_mask_only: bool,
         show_intermediate_steps: bool,
         apply_scripts_to_faces: bool,
+        face_size: int,
+        use_minimal_area: bool,
     ):
         edited_images, all_seeds, all_prompts, infotexts = [], [], [], []
         seed_index = 0
@@ -272,7 +287,9 @@ class Script(scripts.Script):
                                      apply_inside_mask_only=apply_inside_mask_only,
                                      pre_proc_image=image,
                                      show_intermediate_steps=show_intermediate_steps,
-                                     apply_scripts_to_faces=apply_scripts_to_faces)
+                                     apply_scripts_to_faces=apply_scripts_to_faces,
+                                     face_size=face_size,
+                                     use_minimal_area=use_minimal_area)
             edited_images.extend(proc.images)
             all_seeds.extend(proc.all_seeds)
             all_prompts.extend(proc.all_prompts)
@@ -298,13 +315,15 @@ class Script(scripts.Script):
                      apply_inside_mask_only: bool,
                      pre_proc_image: Image = None,
                      show_intermediate_steps: bool = False,
-                     apply_scripts_to_faces: bool = False) -> Processed:
+                     apply_scripts_to_faces: bool = False,
+                     face_size: int = 512,
+                     use_minimal_area: bool = False) -> Processed:
         if hasattr(p.init_images[0], 'mode') and p.init_images[0].mode != 'RGB':
             p.init_images[0] = p.init_images[0].convert('RGB')
 
         entire_image = np.array(p.init_images[0])
         faces = self.__crop_face(
-            detection_model, p.init_images[0], face_margin, confidence)
+            detection_model, p.init_images[0], face_margin, confidence, face_size)
         faces = faces[:max_face_count]
         entire_mask_image = np.zeros_like(entire_image)
 
@@ -355,6 +374,15 @@ class Script(scripts.Script):
                 face.width, face.height))
             mask_image = cv2.resize(mask_image, dsize=(
                 face.width, face.height))
+
+            if use_minimal_area:
+                l, t, r, b = face.face_area
+                face_image = face_image[t - face.top: b - face.top, l - face.left: r - face.left]
+                mask_image = mask_image[t - face.top: b - face.top, l - face.left: r - face.left]
+                face.top = t
+                face.left = l
+                face.bottom = b
+                face.right = r
 
             if apply_inside_mask_only:
                 face_background = entire_image[
@@ -408,22 +436,29 @@ class Script(scripts.Script):
         gray_mask = np.where(mask_image == 0, 47, 255) / 255.0
         return (image * gray_mask).astype('uint8')
 
-    def __crop_face(self, detection_model: RetinaFace, image: Image, face_margin: float, confidence: float) -> list:
+    def __crop_face(self, detection_model: RetinaFace, image: Image, face_margin: float, confidence: float, face_size: int) -> list:
         with torch.no_grad():
             face_boxes, _ = detection_model.align_multi(image, confidence)
-            return self.__crop(image, face_boxes, face_margin)
+            return self.__crop(image, face_boxes, face_margin, face_size)
 
-    def __crop(self, image: Image, face_boxes: list, face_margin: float) -> list:
+    def __crop(self, image: Image, face_boxes: list, face_margin: float, face_size: int) -> list:
         image = np.array(image, dtype=np.uint8)
 
         areas = []
         for face_box in face_boxes:
-            areas.append(Face(image, face_box, face_margin))
+            areas.append(Face(image, face_box, face_margin, face_size))
 
         return sorted(areas, key=attrgetter("height"), reverse=True)
 
     def __to_mask_image(self, mask_model: BiSeNet, face_image: Image, mask_size: int) -> np.ndarray:
         face_image = np.array(face_image)
+        h, w, _ = face_image.shape
+
+        if w != 512 or h != 512:
+            rw = (int(w * (512 / w)) // 8) * 8
+            rh = (int(h * (512 / h)) // 8) * 8
+            face_image = cv2.resize(face_image, dsize=(rw, rh))
+
         face_tensor = img2tensor(face_image.astype(
             "float32") / 255.0, float32=True)
         normalize(face_tensor, (0.5, 0.5, 0.5), (0.5, 0.5, 0.5), inplace=True)
@@ -438,6 +473,10 @@ class Script(scripts.Script):
         if mask_size > 0:
             mask = cv2.dilate(mask, np.empty(
                 0, np.uint8), iterations=mask_size)
+
+        if w != 512 or h != 512:
+            mask = cv2.resize(mask, dsize=(w, h))
+
         return mask
 
     def __to_mask(self, face: np.ndarray) -> np.ndarray:
