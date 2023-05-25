@@ -42,12 +42,18 @@ Please try the following settings first:
 If you feel uncomfortable with the facial contours, try increasing the **"Mask size"** value. This discomfort often occurs when the face is not facing straight ahead.
 
 
-![Mask size](./images/tips-02.png)
+![Mask size](./images/tips-02.jpg)
+
+### When multiple faces are close together
+When multiple faces are close together, one face may collapse under the influence of the other.
+In such cases, enable "Use minimal area for face selection".
+
+![Use minimal area for face selection](./images/tips-04.png)
 
 ### Change facial expression
 Use **"Prompt for face"** option if you want to change the facial expression.
 
-![Prompt for face](./images/tips-03.png)
+![Prompt for face](./images/tips-03.jpg)
 
 ### Fixing images that already exist
 If you wish to modify the face of an already existing image instead of creating a new one, follow these steps:
@@ -122,6 +128,16 @@ If other parameters are exactly the same but this value is different, the atmosp
 ![face margin](./images/face-margin.jpg)
 
 This is the parameter for [step-2](#step-2).
+
+### Use minimal area for face selection
+When pasting the generated image to its original location, the rectangle of the detected face area is used. If this option is not enabled, the generated image itself is pasted. In other words, enabling this option applies a smaller face image, while disabling it applies a larger face image.
+
+This is the parameter for [step-4](#step-4).
+
+### Size of the face when recreating 
+Specifies one side of the image size when creating a face image. Normally, there should be no need to change this from the default value (512), but you may see interesting changes if you do.
+
+This is the parameter for [step-3](#step-3).
 
 ### Prompt for face
 Prompt for generating a new face.
