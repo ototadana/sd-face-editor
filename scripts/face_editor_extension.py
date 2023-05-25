@@ -31,7 +31,10 @@ class FaceEditorExtension(scripts.Script):
                              apply_inside_mask_only: bool,
                              save_original_image: bool,
                              show_intermediate_steps: bool,
-                             apply_scripts_to_faces: bool, **kwargs):
+                             apply_scripts_to_faces: bool,
+                             face_size: int,
+                             use_minimal_area: bool,
+                             **kwargs):
         if not enabled or self.__is_running:
             return
         if not save_original_image:
@@ -56,7 +59,9 @@ class FaceEditorExtension(scripts.Script):
                     apply_inside_mask_only: bool,
                     save_original_image: bool,
                     show_intermediate_steps: bool,
-                    apply_scripts_to_faces: bool):
+                    apply_scripts_to_faces: bool,
+                    face_size: int,
+                    use_minimal_area: bool):
         if not enabled or self.__is_running:
             return
 
@@ -73,6 +78,8 @@ class FaceEditorExtension(scripts.Script):
             save_original_image = enabled.get("save_original_image", save_original_image)
             show_intermediate_steps = enabled.get("show_intermediate_steps", show_intermediate_steps)
             apply_scripts_to_faces = enabled.get("apply_scripts_to_faces", apply_scripts_to_faces)
+            face_size = enabled.get("face_size", face_size)
+            use_minimal_area = enabled.get("use_minimal_area", use_minimal_area)
 
         try:
             self.__is_running = True
@@ -89,7 +96,8 @@ class FaceEditorExtension(scripts.Script):
                                apply_inside_mask_only=apply_inside_mask_only,
                                show_intermediate_steps=show_intermediate_steps,
                                apply_scripts_to_faces=apply_scripts_to_faces,
-                               )
+                               face_size=face_size,
+                               use_minimal_area=use_minimal_area)
 
         finally:
             self.__is_running = False
