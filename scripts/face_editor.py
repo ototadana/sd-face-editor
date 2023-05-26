@@ -132,8 +132,8 @@ class Script(scripts.Script):
         )
         mask_size = gr.Slider(label="Mask size", minimum=0,
                               maximum=64, step=1, value=0)
-        mask_blur = gr.Slider(label="Mask blur", minimum=0,
-                              maximum=64, step=1, value=0)
+        mask_blur = gr.Slider(label="Mask blur ", minimum=0,
+                              maximum=64, step=1, value=12)
         strength2 = gr.Slider(
             minimum=0.0,
             maximum=1.0,
@@ -374,6 +374,8 @@ class Script(scripts.Script):
                 face.width, face.height))
             mask_image = cv2.resize(mask_image, dsize=(
                 face.width, face.height))
+            if mask_blur > 0:
+                mask_image = cv2.blur(mask_image, (mask_blur, mask_blur))
 
             if use_minimal_area:
                 l, t, r, b = face.face_area

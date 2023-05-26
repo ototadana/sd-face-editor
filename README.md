@@ -34,6 +34,7 @@ Please try the following settings first:
 
 - Set the **"Mask size"** to `0`.
 - Check **"Apply inside mask only"**
+- Set the **"Mask blur"** to `12`.
 - Set the **"Denoising strength for the entire image"** to `0`.
 
 ![Recommended settings](./images/tips-01.png)
