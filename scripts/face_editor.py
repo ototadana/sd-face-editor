@@ -88,6 +88,9 @@ class Face:
 
 
 class Script(scripts.Script):
+    def __init__(self) -> None:
+        super().__init__()
+
     def title(self):
         return "Face Editor"
 
@@ -95,6 +98,8 @@ class Script(scripts.Script):
         return True
 
     def ui(self, is_img2img):
+        self.components = []
+
         max_face_count = gr.Slider(
             minimum=1,
             maximum=20,
@@ -102,6 +107,8 @@ class Script(scripts.Script):
             value=20,
             label="Maximum number of faces to detect",
         )
+        self.components.append((max_face_count, self.add_prefix("max_face_count")))
+
         confidence = gr.Slider(
             minimum=0.7,
             maximum=1.0,
@@ -109,20 +116,30 @@ class Script(scripts.Script):
             value=0.97,
             label="Face detection confidence",
         )
+        self.components.append((confidence, self.add_prefix("confidence")))
+
         face_margin = gr.Slider(
             minimum=1.0, maximum=2.0, step=0.1, value=1.6, label="Face margin"
         )
+        self.components.append((face_margin, self.add_prefix("face_margin")))
+
         use_minimal_area = gr.Checkbox(
             label="Use minimal area for face selection",
             value=False)
+        self.components.append((use_minimal_area, self.add_prefix("use_minimal_area")))
+
         face_size = gr.Slider(label="Size of the face when recreating",
                               minimum=64, maximum=2048, step=16, value=512)
+        self.components.append((face_size, self.add_prefix("face_size")))
+
         prompt_for_face = gr.Textbox(
             show_label=False,
             placeholder="Prompt for face",
             label="Prompt for face",
             lines=2,
         )
+        self.components.append((prompt_for_face, self.add_prefix("prompt_for_face")))
+
         strength1 = gr.Slider(
             minimum=0.1,
             maximum=0.8,
@@ -130,10 +147,16 @@ class Script(scripts.Script):
             value=0.4,
             label="Denoising strength for face images",
         )
+        self.components.append((strength1, self.add_prefix("strength1")))
+
         mask_size = gr.Slider(label="Mask size", minimum=0,
                               maximum=64, step=1, value=0)
+        self.components.append((mask_size, self.add_prefix("mask_size")))
+
         mask_blur = gr.Slider(label="Mask blur ", minimum=0,
                               maximum=64, step=1, value=12)
+        self.components.append((mask_blur, self.add_prefix("mask_blur")))
+
         strength2 = gr.Slider(
             minimum=0.0,
             maximum=1.0,
@@ -141,24 +164,29 @@ class Script(scripts.Script):
             value=0.0,
             label="Denoising strength for the entire image ",
         )
+        self.components.append((strength2, self.add_prefix("strength2")))
 
         apply_inside_mask_only = gr.Checkbox(
             label="Apply inside mask only ",
             value=True
         )
+        self.components.append((apply_inside_mask_only, self.add_prefix("apply_inside_mask_only")))
 
         save_original_image = gr.Checkbox(
             label="Save original image",
             value=False
         )
+        self.components.append((save_original_image, self.add_prefix("save_original_image")))
 
         show_intermediate_steps = gr.Checkbox(
             label="Show intermediate steps",
             value=False)
+        self.components.append((show_intermediate_steps, self.add_prefix("show_intermediate_steps")))
 
         apply_scripts_to_faces = gr.Checkbox(
             label="Apply scripts to faces",
             value=False)
+        self.components.append((apply_scripts_to_faces, self.add_prefix("apply_scripts_to_faces")))
 
         return [
             face_margin,
@@ -318,6 +346,22 @@ class Script(scripts.Script):
                      apply_scripts_to_faces: bool = False,
                      face_size: int = 512,
                      use_minimal_area: bool = False) -> Processed:
+        params = {
+            self.add_prefix("enabled"): True,
+            self.add_prefix("face_margin"): face_margin,
+            self.add_prefix("confidence"): confidence,
+            self.add_prefix("strength1"): strength1,
+            self.add_prefix("strength2"): strength2,
+            self.add_prefix("max_face_count"): max_face_count,
+            self.add_prefix("mask_size"): mask_size,
+            self.add_prefix("mask_blur"): mask_blur,
+            self.add_prefix("prompt_for_face"): prompt_for_face if len(prompt_for_face) > 0 else '""',
+            self.add_prefix("apply_inside_mask_only"): apply_inside_mask_only,
+            self.add_prefix("apply_scripts_to_faces"): apply_scripts_to_faces,
+            self.add_prefix("face_size"): face_size,
+            self.add_prefix("use_minimal_area"): use_minimal_area,
+        }
+
         if hasattr(p.init_images[0], 'mode') and p.init_images[0].mode != 'RGB':
             p.init_images[0] = p.init_images[0].convert('RGB')
 
@@ -416,6 +460,8 @@ class Script(scripts.Script):
         p.inpainting_fill = 1
         p.image_mask = Image.fromarray(entire_mask_image)
         p.do_not_save_samples = False
+
+        p.extra_generation_params.update(params)
         proc = process_images(p)
 
         if show_intermediate_steps:
@@ -430,6 +476,9 @@ class Script(scripts.Script):
         self.__extend_infos(proc.infotexts, len(proc.images))
 
         return proc
+
+    def add_prefix(self, text: str) -> str:
+        return "face_editor_" + text
 
     def __extend_infos(self, infos: list, image_count: int):
         return infos.extend([infos[0]] * (image_count - len(infos)))

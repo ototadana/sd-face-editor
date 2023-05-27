@@ -17,7 +17,11 @@ class FaceEditorExtension(scripts.Script):
 
     def ui(self, is_img2img):
         with gr.Accordion("Face Editor", open=False, elem_id="sd-face-editor-extension"):
-            return [gr.Checkbox(label="Enabled", value=False)] + face_editor.Script().ui(is_img2img)
+            script = face_editor.Script()
+            enabled = gr.Checkbox(label="Enabled", value=False)
+            components = [enabled] + script.ui(is_img2img)
+            self.infotext_fields = [(enabled, script.add_prefix("enabled"))] + script.components
+            return components
 
     def before_process_batch(self, p, enabled: bool,
                              face_margin: float,
