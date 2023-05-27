@@ -38,6 +38,7 @@ class FaceEditorExtension(scripts.Script):
                              apply_scripts_to_faces: bool,
                              face_size: int,
                              use_minimal_area: bool,
+                             ignore_larger_faces: bool,
                              **kwargs):
         if not enabled or self.__is_running:
             return
@@ -65,7 +66,8 @@ class FaceEditorExtension(scripts.Script):
                     show_intermediate_steps: bool,
                     apply_scripts_to_faces: bool,
                     face_size: int,
-                    use_minimal_area: bool):
+                    use_minimal_area: bool,
+                    ignore_larger_faces: bool):
         if not enabled or self.__is_running:
             return
 
@@ -84,6 +86,7 @@ class FaceEditorExtension(scripts.Script):
             apply_scripts_to_faces = enabled.get("apply_scripts_to_faces", apply_scripts_to_faces)
             face_size = enabled.get("face_size", face_size)
             use_minimal_area = enabled.get("use_minimal_area", use_minimal_area)
+            ignore_larger_faces = enabled.get("ignore_larger_faces", ignore_larger_faces)
 
         try:
             self.__is_running = True
@@ -101,7 +104,8 @@ class FaceEditorExtension(scripts.Script):
                                show_intermediate_steps=show_intermediate_steps,
                                apply_scripts_to_faces=apply_scripts_to_faces,
                                face_size=face_size,
-                               use_minimal_area=use_minimal_area)
+                               use_minimal_area=use_minimal_area,
+                               ignore_larger_faces=ignore_larger_faces)
 
         finally:
             self.__is_running = False

@@ -132,6 +132,12 @@ class Script(scripts.Script):
                               minimum=64, maximum=2048, step=16, value=512)
         self.components.append((face_size, self.add_prefix("face_size")))
 
+        ignore_larger_faces = gr.Checkbox(
+            label="Ignore faces larger than specified size",
+            value=True
+        )
+        self.components.append((ignore_larger_faces, self.add_prefix("ignore_larger_faces")))
+
         prompt_for_face = gr.Textbox(
             show_label=False,
             placeholder="Prompt for face",
@@ -203,6 +209,7 @@ class Script(scripts.Script):
             apply_scripts_to_faces,
             face_size,
             use_minimal_area,
+            ignore_larger_faces,
         ]
 
     def get_face_models(self):
@@ -232,6 +239,7 @@ class Script(scripts.Script):
         apply_scripts_to_faces: bool,
         face_size: int,
         use_minimal_area: bool,
+        ignore_larger_faces: bool,
     ):
 
         mask_model, detection_model = self.get_face_models()
@@ -246,7 +254,8 @@ class Script(scripts.Script):
                                      show_intermediate_steps=show_intermediate_steps,
                                      apply_scripts_to_faces=apply_scripts_to_faces,
                                      face_size=face_size,
-                                     use_minimal_area=use_minimal_area)
+                                     use_minimal_area=use_minimal_area,
+                                     ignore_larger_faces=ignore_larger_faces)
         else:
             shared.state.job_count = o.n_iter * 3
             if not save_original_image:
@@ -263,7 +272,8 @@ class Script(scripts.Script):
                                     show_intermediate_steps=show_intermediate_steps,
                                     apply_scripts_to_faces=apply_scripts_to_faces,
                                     face_size=face_size,
-                                    use_minimal_area=use_minimal_area)
+                                    use_minimal_area=use_minimal_area,
+                                    ignore_larger_faces=ignore_larger_faces)
 
     def proc_images(
         self,
@@ -284,6 +294,7 @@ class Script(scripts.Script):
         apply_scripts_to_faces: bool,
         face_size: int,
         use_minimal_area: bool,
+        ignore_larger_faces: bool,
     ):
         edited_images, all_seeds, all_prompts, infotexts = [], [], [], []
         seed_index = 0
@@ -317,7 +328,8 @@ class Script(scripts.Script):
                                      show_intermediate_steps=show_intermediate_steps,
                                      apply_scripts_to_faces=apply_scripts_to_faces,
                                      face_size=face_size,
-                                     use_minimal_area=use_minimal_area)
+                                     use_minimal_area=use_minimal_area,
+                                     ignore_larger_faces=ignore_larger_faces)
             edited_images.extend(proc.images)
             all_seeds.extend(proc.all_seeds)
             all_prompts.extend(proc.all_prompts)
@@ -345,7 +357,8 @@ class Script(scripts.Script):
                      show_intermediate_steps: bool = False,
                      apply_scripts_to_faces: bool = False,
                      face_size: int = 512,
-                     use_minimal_area: bool = False) -> Processed:
+                     use_minimal_area: bool = False,
+                     ignore_larger_faces: bool = True) -> Processed:
         params = {
             self.add_prefix("enabled"): True,
             self.add_prefix("face_margin"): face_margin,
@@ -360,6 +373,7 @@ class Script(scripts.Script):
             self.add_prefix("apply_scripts_to_faces"): apply_scripts_to_faces,
             self.add_prefix("face_size"): face_size,
             self.add_prefix("use_minimal_area"): use_minimal_area,
+            self.add_prefix("ignore_larger_faces"): ignore_larger_faces,
         }
 
         if hasattr(p.init_images[0], 'mode') and p.init_images[0].mode != 'RGB':
@@ -367,7 +381,7 @@ class Script(scripts.Script):
 
         entire_image = np.array(p.init_images[0])
         faces = self.__crop_face(
-            detection_model, p.init_images[0], face_margin, confidence, face_size)
+            detection_model, p.init_images[0], face_margin, confidence, face_size, ignore_larger_faces)
         faces = faces[:max_face_count]
         entire_mask_image = np.zeros_like(entire_image)
 
@@ -487,17 +501,21 @@ class Script(scripts.Script):
         gray_mask = np.where(mask_image == 0, 47, 255) / 255.0
         return (image * gray_mask).astype('uint8')
 
-    def __crop_face(self, detection_model: RetinaFace, image: Image, face_margin: float, confidence: float, face_size: int) -> list:
+    def __crop_face(self, detection_model: RetinaFace, image: Image, face_margin: float, confidence: float,
+                    face_size: int, ignore_larger_faces: bool) -> list:
         with torch.no_grad():
             face_boxes, _ = detection_model.align_multi(image, confidence)
-            return self.__crop(image, face_boxes, face_margin, face_size)
+            return self.__crop(image, face_boxes, face_margin, face_size, ignore_larger_faces)
 
-    def __crop(self, image: Image, face_boxes: list, face_margin: float, face_size: int) -> list:
+    def __crop(self, image: Image, face_boxes: list, face_margin: float, face_size: int, ignore_larger_faces: bool) -> list:
         image = np.array(image, dtype=np.uint8)
 
         areas = []
         for face_box in face_boxes:
-            areas.append(Face(image, face_box, face_margin, face_size))
+            face = Face(image, face_box, face_margin, face_size)
+            if ignore_larger_faces and face.width > face_size:
+                continue
+            areas.append(face)
 
         return sorted(areas, key=attrgetter("height"), reverse=True)
 

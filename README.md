@@ -47,7 +47,7 @@ If you feel uncomfortable with the facial contours, try increasing the **"Mask s
 
 ### When multiple faces are close together
 When multiple faces are close together, one face may collapse under the influence of the other.
-In such cases, enable "Use minimal area for face selection".
+In such cases, enable **"Use minimal area for face selection"**.
 
 ![Use minimal area for face selection](./images/tips-04.png)
 
@@ -139,6 +139,13 @@ This is the parameter for [step-4](#step-4).
 Specifies one side of the image size when creating a face image. Normally, there should be no need to change this from the default value (512), but you may see interesting changes if you do.
 
 This is the parameter for [step-3](#step-3).
+
+### Ignore faces larger than specified size
+Ignore if the size of the detected face is larger than the size specified in "Size of the face when recreating".
+
+This is the parameter for [step-1](#step-1).
+
+For more information, please see: [here](https://github.com/ototadana/sd-face-editor/issues/65).
 
 ### Prompt for face
 Prompt for generating a new face.
