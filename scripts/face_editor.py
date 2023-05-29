@@ -309,9 +309,8 @@ class Script(scripts.Script):
                 continue
 
             p = StableDiffusionProcessingImg2Img(init_images=[image])
-            p.__dict__.update(o.__dict__)
-            p.init_images = [image]
-            p.width, p.height = image.size
+            self.__init_processing(p, o, image)
+
             if seed_index < len(res.all_seeds):
                 p.seed = res.all_seeds[seed_index]
                 seed_index += 1
@@ -340,6 +339,18 @@ class Script(scripts.Script):
         res.all_prompts.extend(all_prompts)
         res.infotexts.extend(infotexts)
         return res
+
+    def __init_processing(self, p: StableDiffusionProcessingImg2Img, o: StableDiffusionProcessing, image):
+        sample = p.sample
+        p.__dict__.update(o.__dict__)
+        p.sampler = None
+        p.c = None
+        p.uc = None
+        p.cached_c = [None, None]
+        p.cached_uc = [None, None]
+        p.init_images = [image]
+        p.width, p.height = image.size
+        p.sample = sample
 
     def __proc_image(self, p: StableDiffusionProcessingImg2Img,
                      mask_model: BiSeNet,
@@ -390,7 +401,6 @@ class Script(scripts.Script):
         entire_prompt = p.prompt
         p.batch_size = 1
         p.n_iter = 1
-        scripts = p.scripts
 
         if shared.state.job_count == -1:
             shared.state.job_count = len(faces) + 1
@@ -463,7 +473,6 @@ class Script(scripts.Script):
                 face.left: face.right,
             ] = mask_image
 
-        p.scripts = scripts
         p.prompt = entire_prompt
         p.width = entire_width
         p.height = entire_height
