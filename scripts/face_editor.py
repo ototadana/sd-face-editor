@@ -192,6 +192,7 @@ class Script(scripts.Script):
 
         apply_scripts_to_faces = gr.Checkbox(
             label="Apply scripts to faces",
+            visible=False,
             value=False)
         self.components.append((apply_scripts_to_faces, self.add_prefix("apply_scripts_to_faces")))
 
@@ -387,6 +388,8 @@ class Script(scripts.Script):
             self.add_prefix("use_minimal_area"): use_minimal_area,
             self.add_prefix("ignore_larger_faces"): ignore_larger_faces,
         }
+
+        apply_scripts_to_faces = False
 
         if hasattr(p.init_images[0], 'mode') and p.init_images[0].mode != 'RGB':
             p.init_images[0] = p.init_images[0].convert('RGB')
