@@ -73,13 +73,6 @@ If you wish to modify the face of an already existing image instead of creating 
     ![screen-shot](./images/screen-shot.jpg)
    2. Click **Generate** button.
 
-### Face control with ControlNet
-You can control facial expressions with ControlNet by enabled **"Apply scripts to faces"**. Normally, no other scripts are executed during face image generation, but by enabling this option, they will be.
-
-However, care must be taken when using this option: the ControlNet input image must be specified only in img2img, and nothing must be specified in the ControlNet panel. Specifying it in the ControlNet panel will completely collapse the image.
-
-For more information, please see: [here](https://github.com/ototadana/sd-face-editor/issues/41#issuecomment-1537340496).
-
 ## How it works
 This script performs the following steps:
 
@@ -207,11 +200,6 @@ For more information, please see: [here](https://github.com/ototadana/sd-face-ed
 
 ### Show intermediate steps
 Specifies whether to display images of detected faces and masks.
-
-### Apply scripts to faces
-Normally, no other scripts are executed during face image generation, but by enabling this option, they will be.
-
-For more information, please see: [here](https://github.com/ototadana/sd-face-editor/issues/41#issuecomment-1537340496).
 
 
 ## API
