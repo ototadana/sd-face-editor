@@ -2,6 +2,7 @@ from operator import attrgetter
 
 import cv2
 import gradio as gr
+import modules.images as images
 import modules.scripts as scripts
 import modules.shared as shared
 import numpy as np
@@ -11,7 +12,7 @@ from facexlib.parsing import BiSeNet, init_parsing_model
 from facexlib.utils.misc import img2tensor
 from modules.processing import (Processed, StableDiffusionProcessing,
                                 StableDiffusionProcessingImg2Img,
-                                process_images)
+                                create_infotext, process_images)
 from PIL import Image
 from torchvision.transforms.functional import normalize
 
@@ -485,7 +486,11 @@ class Script(scripts.Script):
         p.do_not_save_samples = False
 
         p.extra_generation_params.update(params)
-        proc = process_images(p)
+
+        if p.denoising_strength > 0:
+            proc = process_images(p)
+        else:
+            proc = self.__save_images(p)
 
         if show_intermediate_steps:
             output_images.append(p.init_images[0])
@@ -499,6 +504,12 @@ class Script(scripts.Script):
         self.__extend_infos(proc.infotexts, len(proc.images))
 
         return proc
+
+    def __save_images(self, p: StableDiffusionProcessingImg2Img) -> Processed:
+        infotext = create_infotext(p, p.all_prompts, p.all_seeds, p.all_subseeds, {}, 0, 0)
+        images.save_image(p.init_images[0], p.outpath_samples, "", p.seed, p.prompt, shared.opts.samples_format, info=infotext, p=p)
+        return Processed(p, images_list=p.init_images, seed=p.seed,
+                         info=infotext, subseed=p.subseed, index_of_first_image=0, infotexts=[infotext])
 
     def add_prefix(self, text: str) -> str:
         return "face_editor_" + text
