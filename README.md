@@ -56,9 +56,12 @@ Use **"Prompt for face"** option if you want to change the facial expression.
 
 ![Prompt for face](./images/tips-03.jpg)
 
-Faces can be specified individually by prompts separated with `||` (two vertical lines).
+#### Individual instructions for multiple faces
+![Individual instructions for multiple faces](./images/tips-05.jpg)
 
-![Specified individually](./images/tips-05.jpg)
+Faces can be individually directed with prompts separated by `||` (two vertical lines).
+
+![Individual instructions for multiple faces - screen shot](./images/tips-06.png)
 
 - Each prompt is applied to the faces on the image in order from left to right.
 - The number of prompts does not have to match the number of faces to work.
