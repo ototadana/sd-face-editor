@@ -56,6 +56,16 @@ Use **"Prompt for face"** option if you want to change the facial expression.
 
 ![Prompt for face](./images/tips-03.jpg)
 
+Faces can be specified individually by prompts separated with `||` (two vertical lines).
+
+![Specified individually](./images/tips-05.jpg)
+
+- Each prompt is applied to the faces on the image in order from left to right.
+- The number of prompts does not have to match the number of faces to work.
+- If you write the string `@@`, the normal prompts (written at the top of the screen) will be expanded at that position.
+- If you are using the [Wildcards Extension](https://github.com/AUTOMATIC1111/stable-diffusion-webui-wildcards), you can use the `__name__` syntax and the text file in the directory of the wildcards extension as well as the normal prompts.
+
+
 ### Fixing images that already exist
 If you wish to modify the face of an already existing image instead of creating a new one, follow these steps:
 

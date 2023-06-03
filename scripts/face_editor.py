@@ -37,6 +37,7 @@ class Face:
     def __to_square(self, face_box: np.ndarray):
         left, top, right, bottom, *_ = list(map(int, face_box))
         self.face_area = left, top, right, bottom
+        self.center = right - int((right - left) / 2)
 
         width = right - left
         height = bottom - top
@@ -398,11 +399,13 @@ class Script(scripts.Script):
         faces = self.__crop_face(
             detection_model, p.init_images[0], face_margin, confidence, face_size, ignore_larger_faces)
         faces = faces[:max_face_count]
+        faces = sorted(faces, key=attrgetter("center"))
         entire_mask_image = np.zeros_like(entire_image)
 
         entire_width = (p.width // 8) * 8
         entire_height = (p.height // 8) * 8
         entire_prompt = p.prompt
+        entire_all_prompts = p.all_prompts
         p.batch_size = 1
         p.n_iter = 1
 
@@ -413,6 +416,14 @@ class Script(scripts.Script):
         if len(faces) == 0 and pre_proc_image is not None:
             return Processed(p, images_list=[pre_proc_image], all_prompts=[p.prompt], all_seeds=[p.seed], infotexts=[""])
         output_images = []
+
+        wildcards_script = None
+        for script in p.scripts.alwayson_scripts:
+            if script.filename.endswith("stable-diffusion-webui-wildcards/scripts/wildcards.py"):
+                wildcards_script = script
+        face_prompts = self.__get_face_prompts(len(faces), prompt_for_face, entire_prompt)
+        face_prompt_index = 0
+
         if not apply_scripts_to_faces:
             p.scripts = None
 
@@ -424,8 +435,12 @@ class Script(scripts.Script):
             p.width = face.image.width
             p.height = face.image.height
             p.denoising_strength = strength1
-            p.prompt = prompt_for_face if len(
-                prompt_for_face) > 0 else entire_prompt
+            p.prompt = face_prompts[face_prompt_index]
+            if wildcards_script is not None:
+                p.prompt = self.__apply_wildcards(wildcards_script, p.prompt, face_prompt_index)
+            face_prompt_index += 1
+            print(f"prompt for the face: {p.prompt}")
+
             p.do_not_save_samples = True
 
             proc = process_images(p)
@@ -478,6 +493,7 @@ class Script(scripts.Script):
             ] = mask_image
 
         p.prompt = entire_prompt
+        p.all_prompts = entire_all_prompts
         p.width = entire_width
         p.height = entire_height
         p.init_images = [Image.fromarray(entire_image)]
@@ -507,6 +523,32 @@ class Script(scripts.Script):
         self.__extend_infos(proc.infotexts, len(proc.images))
 
         return proc
+
+    def __apply_wildcards(self, wildcards_script: scripts.Script, prompt: str, seed: int) -> str:
+        if "__" in prompt:
+            wp = StableDiffusionProcessing()
+            wp.all_prompts = [prompt]
+            wp.all_seeds = [0 if shared.opts.wildcards_same_seed else seed]
+            wildcards_script.process(wp)
+            return wp.all_prompts[0]
+        return prompt
+
+    def __get_face_prompts(self, length: int, prompt_for_face: str, entire_prompt: str) -> list[str]:
+        if len(prompt_for_face) == 0:
+            return [entire_prompt] * length
+        prompts = []
+        p = prompt_for_face.split("||")
+        for i in range(length):
+            if i >= len(p):
+                i = 0
+            prompts.append(self.__edit_face_prompt(p[i], p[0], entire_prompt))
+        return prompts
+
+    def __edit_face_prompt(self, prompt: str, default_prompt: str, entire_prompt: str) -> str:
+        if len(prompt) == 0:
+            return default_prompt
+
+        return prompt.strip().replace("@@", entire_prompt)
 
     def __save_images(self, p: StableDiffusionProcessingImg2Img) -> Processed:
         infotext = create_infotext(p, p.all_prompts, p.all_seeds, p.all_subseeds, {}, 0, 0)
