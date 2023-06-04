@@ -29,28 +29,20 @@ This software improves facial images in these features:
 
 
 ## Tips
-### Recommended settings
-Please try the following settings first:
-
-- Set the **"Mask size"** to `0`.
-- Check **"Apply inside mask only"**
-- Set the **"Mask blur"** to `12`.
-- Set the **"Denoising strength for the entire image"** to `0`.
-
-![Recommended settings](./images/tips-01.png)
-
 ### Contour discomfort
 If you feel uncomfortable with the facial contours, try increasing the **"Mask size"** value. This discomfort often occurs when the face is not facing straight ahead.
 
 
 ![Mask size](./images/tips-02.jpg)
 
+---
 ### When multiple faces are close together
 When multiple faces are close together, one face may collapse under the influence of the other.
 In such cases, enable **"Use minimal area for face selection"**.
 
 ![Use minimal area for face selection](./images/tips-04.png)
 
+---
 ### Change facial expression
 Use **"Prompt for face"** option if you want to change the facial expression.
 
@@ -68,7 +60,7 @@ Faces can be individually directed with prompts separated by `||` (two vertical 
 - If you write the string `@@`, the normal prompts (written at the top of the screen) will be expanded at that position.
 - If you are using the [Wildcards Extension](https://github.com/AUTOMATIC1111/stable-diffusion-webui-wildcards), you can use the `__name__` syntax and the text file in the directory of the wildcards extension as well as the normal prompts.
 
-
+---
 ### Fixing images that already exist
 If you wish to modify the face of an already existing image instead of creating a new one, follow these steps:
 
@@ -86,29 +78,30 @@ If you wish to modify the face of an already existing image instead of creating 
     ![screen-shot](./images/screen-shot.jpg)
    2. Click **Generate** button.
 
+---
 ## How it works
 This script performs the following steps:
 
 ### Step 0
 First, image(s) are generated as usual according to prompts and other settings. This script acts as a post-processor for those images.
 
-### Step 1
+### Step 1. Face Detection
 Detects faces on the image.
 ![step-1](./images/step-1.jpg)
 
-### Step 2
+### Step 2. Crop and Resize the Faces
 Crop the detected face image and resize it to 512x512.
 ![step-2](./images/step-2.jpg)
 
-### Step 3
+### Step 3. Recreate the Faces
 Run **img2img** with the image to create a new face image.
 ![step-3](./images/step-3.jpg)
 
-### Step 4
+### Step 4. Paste the Faces
 Resize the new face image and paste it at the original image location.
 ![step-4](./images/step-4.jpg)
 
-### Step 5
+### Step 5. Blend the entire image
 To remove the borders generated when pasting the image, mask all but the face and run **inpaint**.
 ![step-5](./images/step-5.jpg)
 
@@ -116,50 +109,71 @@ To remove the borders generated when pasting the image, mask all but the face an
 ![step-6](./images/step-6.jpg)
 
 ## Parameters
-### Maximum number of faces to detect (1-20)
+### Basic Options
+##### Use minimal area for face selection (for multiple faces)
+When pasting the generated image to its original location, the rectangle of the detected face area is used. If this option is not enabled, the generated image itself is pasted. In other words, enabling this option applies a smaller face image, while disabling it applies a larger face image.
+
+##### Save original image
+Specify whether to save the image before modification.
+
+##### Show intermediate steps
+Specifies whether to display images of detected faces and masks.
+
+If the generated image is unnatural, enabling it may reveal the cause.
+
+##### Prompt for face
+Prompt for generating a new face.
+If this parameter is not specified, the prompt entered at the top of the screen is used.
+
+For more information, please see: [here](#change-facial-expression).
+
+
+
+
+##### Mask size (0-64)
+Size of the mask area when inpainting to blend the new face with the whole image.
+
+**size: 0**
+![mask size 0](./images/mask-00.jpg)
+
+**size: 10**
+![mask size 10](./images/mask-10.jpg)
+
+**size: 20**
+![mask size 20](./images/mask-20.jpg)
+
+##### Mask blur (0-64)
+Size of the blur area when inpainting to blend the new face with the whole image.
+
+
+---
+### Advanced Options
+#### Step 1. Face Detection
+##### Maximum number of faces to detect (1-20)
 Use this parameter when you want to reduce the number of faces to be detected.
 If more faces are found than the number set here, the smaller faces will be ignored.
 
-This is the parameter for [step-1](#step-1).
-
-### Face detection confidence (0.7-1.0)
+##### Face detection confidence (0.7-1.0)
 Confidence threshold for face detection. Set a lower value if you want to detect more faces.
 
-This is the parameter for [step-1](#step-1).
-
-### Face margin (1.0-2.0)
+#### Step 2. Crop and Resize the Faces
+##### Face margin (1.0-2.0)
 Specify the size of the margin for face cropping by magnification.
 
 If other parameters are exactly the same but this value is different, the atmosphere of the new face created will be different.
 
 ![face margin](./images/face-margin.jpg)
 
-This is the parameter for [step-2](#step-2).
-
-### Use minimal area for face selection
-When pasting the generated image to its original location, the rectangle of the detected face area is used. If this option is not enabled, the generated image itself is pasted. In other words, enabling this option applies a smaller face image, while disabling it applies a larger face image.
-
-This is the parameter for [step-4](#step-4).
-
-### Size of the face when recreating 
+##### Size of the face when recreating 
 Specifies one side of the image size when creating a face image. Normally, there should be no need to change this from the default value (512), but you may see interesting changes if you do.
 
-This is the parameter for [step-3](#step-3).
-
-### Ignore faces larger than specified size
+##### Ignore faces larger than specified size
 Ignore if the size of the detected face is larger than the size specified in "Size of the face when recreating".
-
-This is the parameter for [step-1](#step-1).
 
 For more information, please see: [here](https://github.com/ototadana/sd-face-editor/issues/65).
 
-### Prompt for face
-Prompt for generating a new face.
-If this parameter is not specified, the prompt entered at the top of the screen is used.
-
-This is the parameter for [step-3](#step-3).
-
-### Denoising strength for face images (0.1-0.8)
+#### Step 3. Recreate the Faces
+##### Denoising strength for face images (0.1-0.8)
 Denoising strength for generating a new face.
 If the value is too small, facial collapse cannot be corrected, but if it is too large, it is difficult to blend with the entire image.
 
@@ -172,47 +186,16 @@ If the value is too small, facial collapse cannot be corrected, but if it is too
 **strength: 0.8**
 ![strength 0.8](./images/deno-8.jpg)
 
-This is the parameter for [step-3](#step-3).
-
-### Mask size (0-64)
-Size of the mask area when inpainting to blend the new face with the whole image.
-
-**size: 0**
-![mask size 0](./images/mask-00.jpg)
-
-**size: 10**
-![mask size 10](./images/mask-10.jpg)
-
-**size: 20**
-![mask size 20](./images/mask-20.jpg)
-
-This is the parameter for [step-5](#step-5).
-
-### Mask blur (0-64)
-Size of the blur area when inpainting to blend the new face with the whole image.
-
-This is the parameter for [step-5](#step-5).
-
-### Denoising strength for the entire image (0.0-1.0)
-Denoising strength when inpainting to blend the new face with the whole image.
-If the border lines are too prominent, increase this value.
-
-This is the parameter for [step-5](#step-5).
-
-### Apply inside mask only
+#### Step 4. Paste the Faces
+##### Apply inside mask only
 Paste an image cut out in the shape of a face instead of a square image.
-
-This is the parameter for [step-4](#step-4).
 
 For more information, please see: [here](https://github.com/ototadana/sd-face-editor/issues/33).
 
-### Save original image
-Specify whether to save the image before modification.
-
-For more information, please see: [here](https://github.com/ototadana/sd-face-editor/issues/7#issuecomment-1505091410).
-
-### Show intermediate steps
-Specifies whether to display images of detected faces and masks.
+#### Step 5. Blend the entire image
+##### Denoising strength for the entire image (0.0-1.0)
+Denoising strength when inpainting to blend the new face with the whole image.
+If the border lines are too prominent, increase this value.
 
 
 ## API
