@@ -458,17 +458,19 @@ class Script(scripts.Script):
             mask_image = self.__to_mask_image(
                 mask_model, face_image, mask_size)
 
+            if mask_blur > 0:
+                mask_image = cv2.blur(mask_image, (mask_blur, mask_blur))
+
             if show_intermediate_steps:
-                output_images.append(Image.fromarray(face_image))
-                output_images.append(Image.fromarray(
-                    self.__to_masked_image(mask_image, face_image)))
+                feature = self.__get_feature(p.prompt, entire_prompt)
+                mask_info = f"size:{mask_size}, blur:{mask_blur}"
+                output_images.append(Image.fromarray(self.__add_comment(face_image, feature)))
+                output_images.append(Image.fromarray(self.__add_comment(self.__to_masked_image(mask_image, face_image), mask_info)))
 
             face_image = cv2.resize(face_image, dsize=(
                 face.width, face.height))
             mask_image = cv2.resize(mask_image, dsize=(
                 face.width, face.height))
-            if mask_blur > 0:
-                mask_image = cv2.blur(mask_image, (mask_blur, mask_blur))
 
             if use_minimal_area:
                 l, t, r, b = face.face_area
@@ -529,6 +531,18 @@ class Script(scripts.Script):
         self.__extend_infos(proc.infotexts, len(proc.images))
 
         return proc
+
+    def __get_feature(self, prompt: str, entire_prompt: str) -> str:
+        if prompt == "" or prompt == entire_prompt:
+            return ""
+        return prompt.replace(entire_prompt, "")
+
+    def __add_comment(self, image: np.ndarray, comment: str) -> np.ndarray:
+        image = np.copy(image)
+        h, _, _ = image.shape
+        cv2.putText(image, text=comment, org=(10, h - 16), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1.2, color=(0, 0, 0), thickness=10)
+        cv2.putText(image, text=comment, org=(10, h - 16), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1.2, color=(255, 255, 255), thickness=2)
+        return image
 
     def __apply_wildcards(self, wildcards_script: scripts.Script, prompt: str, seed: int) -> str:
         if "__" in prompt:
