@@ -102,83 +102,10 @@ class Script(scripts.Script):
     def ui(self, is_img2img):
         self.components = []
 
-        max_face_count = gr.Slider(
-            minimum=1,
-            maximum=20,
-            step=1,
-            value=20,
-            label="Maximum number of faces to detect",
-        )
-        self.components.append((max_face_count, self.add_prefix("max_face_count")))
-
-        confidence = gr.Slider(
-            minimum=0.7,
-            maximum=1.0,
-            step=0.01,
-            value=0.97,
-            label="Face detection confidence",
-        )
-        self.components.append((confidence, self.add_prefix("confidence")))
-
-        face_margin = gr.Slider(
-            minimum=1.0, maximum=2.0, step=0.1, value=1.6, label="Face margin"
-        )
-        self.components.append((face_margin, self.add_prefix("face_margin")))
-
         use_minimal_area = gr.Checkbox(
-            label="Use minimal area for face selection",
+            label="Use minimal area for face selection (for multiple faces)",
             value=False)
         self.components.append((use_minimal_area, self.add_prefix("use_minimal_area")))
-
-        face_size = gr.Slider(label="Size of the face when recreating",
-                              minimum=64, maximum=2048, step=16, value=512)
-        self.components.append((face_size, self.add_prefix("face_size")))
-
-        ignore_larger_faces = gr.Checkbox(
-            label="Ignore faces larger than specified size",
-            value=True
-        )
-        self.components.append((ignore_larger_faces, self.add_prefix("ignore_larger_faces")))
-
-        prompt_for_face = gr.Textbox(
-            show_label=False,
-            placeholder="Prompt for face",
-            label="Prompt for face",
-            lines=2,
-        )
-        self.components.append((prompt_for_face, self.add_prefix("prompt_for_face")))
-
-        strength1 = gr.Slider(
-            minimum=0.1,
-            maximum=0.8,
-            step=0.05,
-            value=0.4,
-            label="Denoising strength for face images",
-        )
-        self.components.append((strength1, self.add_prefix("strength1")))
-
-        mask_size = gr.Slider(label="Mask size", minimum=0,
-                              maximum=64, step=1, value=0)
-        self.components.append((mask_size, self.add_prefix("mask_size")))
-
-        mask_blur = gr.Slider(label="Mask blur ", minimum=0,
-                              maximum=64, step=1, value=12)
-        self.components.append((mask_blur, self.add_prefix("mask_blur")))
-
-        strength2 = gr.Slider(
-            minimum=0.0,
-            maximum=1.0,
-            step=0.05,
-            value=0.0,
-            label="Denoising strength for the entire image ",
-        )
-        self.components.append((strength2, self.add_prefix("strength2")))
-
-        apply_inside_mask_only = gr.Checkbox(
-            label="Apply inside mask only ",
-            value=True
-        )
-        self.components.append((apply_inside_mask_only, self.add_prefix("apply_inside_mask_only")))
 
         save_original_image = gr.Checkbox(
             label="Save original image",
@@ -191,11 +118,90 @@ class Script(scripts.Script):
             value=False)
         self.components.append((show_intermediate_steps, self.add_prefix("show_intermediate_steps")))
 
-        apply_scripts_to_faces = gr.Checkbox(
-            label="Apply scripts to faces",
-            visible=False,
-            value=False)
-        self.components.append((apply_scripts_to_faces, self.add_prefix("apply_scripts_to_faces")))
+        prompt_for_face = gr.Textbox(
+            show_label=False,
+            placeholder="Prompt for face",
+            label="Prompt for face",
+            lines=2,
+        )
+        self.components.append((prompt_for_face, self.add_prefix("prompt_for_face")))
+
+        mask_size = gr.Slider(label="Mask size", minimum=0,
+                              maximum=64, step=1, value=0)
+        self.components.append((mask_size, self.add_prefix("mask_size")))
+
+        mask_blur = gr.Slider(label="Mask blur ", minimum=0,
+                              maximum=64, step=1, value=12)
+        self.components.append((mask_blur, self.add_prefix("mask_blur")))
+
+        with gr.Accordion("Advanced Options", open=False):
+            with gr.Accordion("(1) Face Detection", open=False):
+                max_face_count = gr.Slider(
+                    minimum=1,
+                    maximum=20,
+                    step=1,
+                    value=20,
+                    label="Maximum number of faces to detect",
+                )
+                self.components.append((max_face_count, self.add_prefix("max_face_count")))
+
+                confidence = gr.Slider(
+                    minimum=0.7,
+                    maximum=1.0,
+                    step=0.01,
+                    value=0.97,
+                    label="Face detection confidence",
+                )
+                self.components.append((confidence, self.add_prefix("confidence")))
+
+            with gr.Accordion("(2) Crop and Resize the Faces", open=False):
+                face_margin = gr.Slider(
+                    minimum=1.0, maximum=2.0, step=0.1, value=1.6, label="Face margin"
+                )
+                self.components.append((face_margin, self.add_prefix("face_margin")))
+
+                face_size = gr.Slider(label="Size of the face when recreating",
+                                      minimum=64, maximum=2048, step=16, value=512)
+                self.components.append((face_size, self.add_prefix("face_size")))
+
+                ignore_larger_faces = gr.Checkbox(
+                    label="Ignore faces larger than specified size",
+                    value=True
+                )
+                self.components.append((ignore_larger_faces, self.add_prefix("ignore_larger_faces")))
+
+            with gr.Accordion("(3) Recreate the Faces", open=False):
+                strength1 = gr.Slider(
+                    minimum=0.1,
+                    maximum=0.8,
+                    step=0.05,
+                    value=0.4,
+                    label="Denoising strength for face images",
+                )
+                self.components.append((strength1, self.add_prefix("strength1")))
+
+                apply_scripts_to_faces = gr.Checkbox(
+                    label="Apply scripts to faces",
+                    visible=False,
+                    value=False)
+                self.components.append((apply_scripts_to_faces, self.add_prefix("apply_scripts_to_faces")))
+
+            with gr.Accordion("(4) Paste the Faces", open=False):
+                apply_inside_mask_only = gr.Checkbox(
+                    label="Apply inside mask only ",
+                    value=True
+                )
+                self.components.append((apply_inside_mask_only, self.add_prefix("apply_inside_mask_only")))
+
+            with gr.Accordion("(5) Blend the entire image", open=False):
+                strength2 = gr.Slider(
+                    minimum=0.0,
+                    maximum=1.0,
+                    step=0.05,
+                    value=0.0,
+                    label="Denoising strength for the entire image ",
+                )
+                self.components.append((strength2, self.add_prefix("strength2")))
 
         return [
             face_margin,
