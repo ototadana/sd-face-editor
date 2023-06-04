@@ -21,7 +21,7 @@ This software improves facial images in these features:
 
 
 ## Usage
-1. Click "Face Editor" and check "Enabled".
+1. Click "Face Editor" and check **"Enabled"**.
    ![Check Enabled](./images/usage-01.png)
 2. Then enter the prompts as usual and click the "Generate" button to modify the faces in the generated images.
    ![Result](./images/usage-02.png)
