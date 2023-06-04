@@ -571,6 +571,8 @@ class Script(scripts.Script):
         return prompt.strip().replace("@@", entire_prompt)
 
     def __save_images(self, p: StableDiffusionProcessingImg2Img) -> Processed:
+        if p.all_prompts is None or len(p.all_prompts) == 0:
+            p.all_prompts = [p.prompt]
         infotext = create_infotext(p, p.all_prompts, p.all_seeds, p.all_subseeds, {}, 0, 0)
         images.save_image(p.init_images[0], p.outpath_samples, "", p.seed, p.prompt, shared.opts.samples_format, info=infotext, p=p)
         return Processed(p, images_list=p.init_images, seed=p.seed,
