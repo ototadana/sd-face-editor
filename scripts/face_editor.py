@@ -1,4 +1,5 @@
 from operator import attrgetter
+from typing import List
 
 import cv2
 import gradio as gr
@@ -553,7 +554,7 @@ class Script(scripts.Script):
             return wp.all_prompts[0]
         return prompt
 
-    def __get_face_prompts(self, length: int, prompt_for_face: str, entire_prompt: str) -> list[str]:
+    def __get_face_prompts(self, length: int, prompt_for_face: str, entire_prompt: str) -> List[str]:
         if len(prompt_for_face) == 0:
             return [entire_prompt] * length
         prompts = []
