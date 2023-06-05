@@ -1,5 +1,5 @@
 from operator import attrgetter
-from typing import List
+from typing import List, Tuple
 
 import cv2
 import gradio as gr
@@ -29,6 +29,15 @@ class Face:
         self.height = self.bottom - self.top
 
         self.image = self.__crop_face_image(entire_image, face_size)
+        self.face_area_on_image = self.__get_face_area_on_image(face_size)
+
+    def __get_face_area_on_image(self, face_size: int):
+        scaleFactor = face_size / self.width
+        (l, t, r, b) = self.face_area
+        return (int((l - self.left) * scaleFactor),
+                int((t - self.top) * scaleFactor),
+                int((r - self.left) * scaleFactor),
+                int((b - self.top) * scaleFactor))
 
     def __crop_face_image(self, entire_image: np.ndarray, face_size: int):
         cropped = entire_image[self.top: self.bottom, self.left: self.right, :]
@@ -104,7 +113,7 @@ class Script(scripts.Script):
         self.components = []
 
         use_minimal_area = gr.Checkbox(
-            label="Use minimal area for face selection (for multiple faces)",
+            label="Use minimal area (for close faces)",
             value=False)
         self.components.append((use_minimal_area, self.add_prefix("use_minimal_area")))
 
@@ -456,8 +465,12 @@ class Script(scripts.Script):
                 proc.images[0] = proc.images[0].convert('RGB')
 
             face_image = np.array(proc.images[0])
-            mask_image = self.__to_mask_image(
-                mask_model, face_image, mask_size)
+            if use_minimal_area:
+                face_image_for_mask = self.__mask_non_face_areas(face_image, face.face_area_on_image)
+            else:
+                face_image_for_mask = face_image
+
+            mask_image = self.__to_mask_image(mask_model, face_image_for_mask, mask_size)
 
             if mask_blur > 0:
                 mask_image = cv2.blur(mask_image, (mask_blur, mask_blur))
@@ -522,9 +535,10 @@ class Script(scripts.Script):
 
         if show_intermediate_steps:
             output_images.append(p.init_images[0])
-            output_images.append(Image.fromarray(
-                self.__to_masked_image(entire_mask_image, entire_image)))
-            output_images.append(proc.images[0])
+            if p.denoising_strength > 0:
+                output_images.append(Image.fromarray(
+                    self.__to_masked_image(entire_mask_image, entire_image)))
+                output_images.append(proc.images[0])
             proc.images = output_images
 
         self.__extend_infos(proc.all_prompts, len(proc.images))
@@ -628,8 +642,7 @@ class Script(scripts.Script):
 
         mask = self.__to_mask(face)
         if mask_size > 0:
-            mask = cv2.dilate(mask, np.empty(
-                0, np.uint8), iterations=mask_size)
+            mask = cv2.dilate(mask, np.ones((5, 5), np.uint8), iterations=mask_size)
 
         if w != 512 or h != 512:
             mask = cv2.resize(mask, dsize=(w, h))
@@ -644,3 +657,12 @@ class Script(scripts.Script):
             if i < 14:
                 mask[index[0], index[1], :] = [255, 255, 255]
         return mask
+
+    def __mask_non_face_areas(self, image: np.ndarray, face_area_on_image: Tuple[int, int, int, int]):
+        left, top, right, bottom = face_area_on_image
+        image = image.copy()
+        image[:top, :] = 0
+        image[bottom:, :] = 0
+        image[:, :left] = 0
+        image[:, right:] = 0
+        return image

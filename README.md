@@ -38,9 +38,9 @@ If you feel uncomfortable with the facial contours, try increasing the **"Mask s
 ---
 ### When multiple faces are close together
 When multiple faces are close together, one face may collapse under the influence of the other.
-In such cases, enable **"Use minimal area for face selection"**.
+In such cases, enable **"Use minimal area (for close faces)"**.
 
-![Use minimal area for face selection](./images/tips-04.png)
+![Use minimal area for close faces](./images/tips-04.png)
 
 ---
 ### Change facial expression
@@ -110,7 +110,7 @@ To remove the borders generated when pasting the image, mask all but the face an
 
 ## Parameters
 ### Basic Options
-##### Use minimal area for face selection (for multiple faces)
+##### Use minimal area (for close faces)
 When pasting the generated image to its original location, the rectangle of the detected face area is used. If this option is not enabled, the generated image itself is pasted. In other words, enabling this option applies a smaller face image, while disabling it applies a larger face image.
 
 ##### Save original image
