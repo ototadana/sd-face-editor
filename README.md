@@ -70,13 +70,9 @@ If you wish to modify the face of an already existing image instead of creating 
    1. Click **PNG Info** tab.
    2. Upload the image to be edited.
    3. Click **Send to img2img** button.
-2. Disable Face Editor extension  
-   Here, script is used instead of extension.
-   Therefore, turn off the "Enabled" checkbox in the Face Editor extension.
-3. Open Face Editor script and Generate
-   1. In the img2img tab, select **Face Editor** script.
-    ![screen-shot](./images/screen-shot.jpg)
-   2. Click **Generate** button.
+2. Set the value of **"Denoising strength"** of img2img to 0. This setting is good for preventing changes to areas other than the faces and for reducing processing time.
+3. Click "Face Editor" and check "Enabled".
+4. Then, set the desired parameters and click the Generate button.
 
 ---
 ## How it works
