@@ -1,3 +1,5 @@
+import os
+import tempfile
 from operator import attrgetter
 from typing import List, Tuple
 
@@ -16,6 +18,8 @@ from modules.processing import (Processed, StableDiffusionProcessing,
                                 create_infotext, process_images)
 from PIL import Image
 from torchvision.transforms.functional import normalize
+
+os.makedirs(os.path.join(tempfile.gettempdir(), 'gradio'), exist_ok=True)
 
 
 class Face:
