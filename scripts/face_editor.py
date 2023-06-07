@@ -22,6 +22,87 @@ from torchvision.transforms.functional import normalize
 os.makedirs(os.path.join(tempfile.gettempdir(), 'gradio'), exist_ok=True)
 
 
+class Option:
+    DEFAULT_FACE_MARGIN = 1.6
+    DEFAULT_CONFIDENCE = 0.97
+    DEFAULT_STRENGTH1 = 0.4
+    DEFAULT_STRENGTH2 = 0.0
+    DEFAULT_MAX_FACE_COUNT = 20
+    DEFAULT_MASK_SIZE = 0
+    DEFAULT_MASK_BLUR = 12
+    DEFAULT_PROMPT_FOR_FACE = ""
+    DEFAULT_APPLY_INSIDE_MASK_ONLY = True
+    DEFAULT_SAVE_ORIGINAL_IMAGE = False
+    DEFAULT_SHOW_INTERMEDIATE_STEPS = False
+    DEFAULT_APPLY_SCRIPTS_TO_FACES = False
+    DEFAULT_FACE_SIZE = 512
+    DEFAULT_USE_MINIMAL_AREA = False
+    DEFAULT_IGNORE_LARGER_FACES = True
+    DEFAULT_TARGETS = ["Face"]
+
+    def __init__(self, *args) -> None:
+        arg_len = len(args)
+        self.face_margin: float = args[0] if arg_len > 0 else Option.DEFAULT_FACE_MARGIN
+        self.confidence: float = args[1] if arg_len > 1 else Option.DEFAULT_CONFIDENCE
+        self.strength1: float = args[2] if arg_len > 2 else Option.DEFAULT_STRENGTH1
+        self.strength2: float = args[3] if arg_len > 3 else Option.DEFAULT_STRENGTH2
+        self.max_face_count: int = args[4] if arg_len > 4 else Option.DEFAULT_MAX_FACE_COUNT
+        self.mask_size: int = args[5] if arg_len > 5 else Option.DEFAULT_MASK_SIZE
+        self.mask_blur: int = args[6] if arg_len > 6 else Option.DEFAULT_MASK_BLUR
+        self.prompt_for_face: str = args[7] if arg_len > 7 else Option.DEFAULT_PROMPT_FOR_FACE
+        self.apply_inside_mask_only: bool = args[8] if arg_len > 8 else Option.DEFAULT_APPLY_INSIDE_MASK_ONLY
+        self.save_original_image: bool = args[9] if arg_len > 9 else Option.DEFAULT_SAVE_ORIGINAL_IMAGE
+        self.show_intermediate_steps: bool = args[10] if arg_len > 10 else Option.DEFAULT_SHOW_INTERMEDIATE_STEPS
+        self.apply_scripts_to_faces: bool = args[11] if arg_len > 11 else Option.DEFAULT_APPLY_SCRIPTS_TO_FACES
+        self.face_size: int = args[12] if arg_len > 12 else Option.DEFAULT_FACE_SIZE
+        self.use_minimal_area: bool = args[13] if arg_len > 13 else Option.DEFAULT_USE_MINIMAL_AREA
+        self.ignore_larger_faces: bool = args[14] if arg_len > 14 else Option.DEFAULT_IGNORE_LARGER_FACES
+        self.targets: list = args[15] if arg_len > 15 else Option.DEFAULT_TARGETS
+
+        self.apply_scripts_to_faces = False
+
+    def update_by(self, params: dict) -> None:
+        self.face_margin = params.get("face_margin", self.face_margin)
+        self.confidence = params.get("confidence", self.confidence)
+        self.strength1 = params.get("strength1", self.strength1)
+        self.strength2 = params.get("strength2", self.strength2)
+        self.max_face_count = params.get("max_face_count", self.max_face_count)
+        self.mask_size = params.get("mask_size", self.mask_size)
+        self.mask_blur = params.get("mask_blur", self.mask_blur)
+        self.prompt_for_face = params.get("prompt_for_face", self.prompt_for_face)
+        self.apply_inside_mask_only = params.get("apply_inside_mask_only", self.apply_inside_mask_only)
+        self.save_original_image = params.get("save_original_image", self.save_original_image)
+        self.show_intermediate_steps = params.get("show_intermediate_steps", self.show_intermediate_steps)
+        self.apply_scripts_to_faces = params.get("apply_scripts_to_faces", self.apply_scripts_to_faces)
+        self.face_size = params.get("face_size", self.face_size)
+        self.use_minimal_area = params.get("use_minimal_area", self.use_minimal_area)
+        self.ignore_larger_faces = params.get("ignore_larger_faces", self.ignore_larger_faces)
+        self.targets = params.get("targets", self.targets)
+
+    def to_dict(self) -> dict:
+        return {
+            Option.add_prefix("enabled"): True,
+            Option.add_prefix("face_margin"): self.face_margin,
+            Option.add_prefix("confidence"): self.confidence,
+            Option.add_prefix("strength1"): self.strength1,
+            Option.add_prefix("strength2"): self.strength2,
+            Option.add_prefix("max_face_count"): self.max_face_count,
+            Option.add_prefix("mask_size"): self.mask_size,
+            Option.add_prefix("mask_blur"): self.mask_blur,
+            Option.add_prefix("prompt_for_face"): self.prompt_for_face if len(self.prompt_for_face) > 0 else '""',
+            Option.add_prefix("apply_inside_mask_only"): self.apply_inside_mask_only,
+            Option.add_prefix("apply_scripts_to_faces"): self.apply_scripts_to_faces,
+            Option.add_prefix("face_size"): self.face_size,
+            Option.add_prefix("use_minimal_area"): self.use_minimal_area,
+            Option.add_prefix("ignore_larger_faces"): self.ignore_larger_faces,
+            Option.add_prefix("targets"): self.targets,
+        }
+
+    @staticmethod
+    def add_prefix(text: str) -> str:
+        return "face_editor_" + text
+
+
 class Face:
     def __init__(self, entire_image: np.ndarray, face_box: np.ndarray, face_margin: float, face_size: int):
         left, top, right, bottom = self.__to_square(face_box)
@@ -118,19 +199,19 @@ class Script(scripts.Script):
 
         use_minimal_area = gr.Checkbox(
             label="Use minimal area (for close faces)",
-            value=False)
-        self.components.append((use_minimal_area, self.add_prefix("use_minimal_area")))
+            value=Option.DEFAULT_USE_MINIMAL_AREA)
+        self.components.append((use_minimal_area, Option.add_prefix("use_minimal_area")))
 
         save_original_image = gr.Checkbox(
             label="Save original image",
-            value=False
+            value=Option.DEFAULT_SAVE_ORIGINAL_IMAGE
         )
-        self.components.append((save_original_image, self.add_prefix("save_original_image")))
+        self.components.append((save_original_image, Option.add_prefix("save_original_image")))
 
         show_intermediate_steps = gr.Checkbox(
             label="Show intermediate steps",
-            value=False)
-        self.components.append((show_intermediate_steps, self.add_prefix("show_intermediate_steps")))
+            value=Option.DEFAULT_SHOW_INTERMEDIATE_STEPS)
+        self.components.append((show_intermediate_steps, Option.add_prefix("show_intermediate_steps")))
 
         prompt_for_face = gr.Textbox(
             show_label=False,
@@ -138,15 +219,18 @@ class Script(scripts.Script):
             label="Prompt for face",
             lines=2,
         )
-        self.components.append((prompt_for_face, self.add_prefix("prompt_for_face")))
+        self.components.append((prompt_for_face, Option.add_prefix("prompt_for_face")))
+
+        targets = gr.CheckboxGroup(label="Targets", choices=["Face", "Hair", "Hat", "Neck"], value=Option.DEFAULT_TARGETS)
+        self.components.append((targets, Option.add_prefix("targets")))
 
         mask_size = gr.Slider(label="Mask size", minimum=0,
-                              maximum=64, step=1, value=0)
-        self.components.append((mask_size, self.add_prefix("mask_size")))
+                              maximum=64, step=1, value=Option.DEFAULT_MASK_SIZE)
+        self.components.append((mask_size, Option.add_prefix("mask_size")))
 
         mask_blur = gr.Slider(label="Mask blur ", minimum=0,
-                              maximum=64, step=1, value=12)
-        self.components.append((mask_blur, self.add_prefix("mask_blur")))
+                              maximum=64, step=1, value=Option.DEFAULT_MASK_BLUR)
+        self.components.append((mask_blur, Option.add_prefix("mask_blur")))
 
         with gr.Accordion("Advanced Options", open=False):
             with gr.Accordion("(1) Face Detection", open=False):
@@ -154,68 +238,68 @@ class Script(scripts.Script):
                     minimum=1,
                     maximum=20,
                     step=1,
-                    value=20,
+                    value=Option.DEFAULT_MAX_FACE_COUNT,
                     label="Maximum number of faces to detect",
                 )
-                self.components.append((max_face_count, self.add_prefix("max_face_count")))
+                self.components.append((max_face_count, Option.add_prefix("max_face_count")))
 
                 confidence = gr.Slider(
                     minimum=0.7,
                     maximum=1.0,
                     step=0.01,
-                    value=0.97,
+                    value=Option.DEFAULT_CONFIDENCE,
                     label="Face detection confidence",
                 )
-                self.components.append((confidence, self.add_prefix("confidence")))
+                self.components.append((confidence, Option.add_prefix("confidence")))
 
             with gr.Accordion("(2) Crop and Resize the Faces", open=False):
                 face_margin = gr.Slider(
-                    minimum=1.0, maximum=2.0, step=0.1, value=1.6, label="Face margin"
+                    minimum=1.0, maximum=2.0, step=0.1, value=Option.DEFAULT_FACE_MARGIN, label="Face margin"
                 )
-                self.components.append((face_margin, self.add_prefix("face_margin")))
+                self.components.append((face_margin, Option.add_prefix("face_margin")))
 
                 face_size = gr.Slider(label="Size of the face when recreating",
-                                      minimum=64, maximum=2048, step=16, value=512)
-                self.components.append((face_size, self.add_prefix("face_size")))
+                                      minimum=64, maximum=2048, step=16, value=Option.DEFAULT_FACE_SIZE)
+                self.components.append((face_size, Option.add_prefix("face_size")))
 
                 ignore_larger_faces = gr.Checkbox(
                     label="Ignore faces larger than specified size",
-                    value=True
+                    value=Option.DEFAULT_IGNORE_LARGER_FACES
                 )
-                self.components.append((ignore_larger_faces, self.add_prefix("ignore_larger_faces")))
+                self.components.append((ignore_larger_faces, Option.add_prefix("ignore_larger_faces")))
 
             with gr.Accordion("(3) Recreate the Faces", open=False):
                 strength1 = gr.Slider(
                     minimum=0.1,
                     maximum=0.8,
                     step=0.05,
-                    value=0.4,
+                    value=Option.DEFAULT_STRENGTH1,
                     label="Denoising strength for face images",
                 )
-                self.components.append((strength1, self.add_prefix("strength1")))
+                self.components.append((strength1, Option.add_prefix("strength1")))
 
                 apply_scripts_to_faces = gr.Checkbox(
                     label="Apply scripts to faces",
                     visible=False,
-                    value=False)
-                self.components.append((apply_scripts_to_faces, self.add_prefix("apply_scripts_to_faces")))
+                    value=Option.DEFAULT_APPLY_SCRIPTS_TO_FACES)
+                self.components.append((apply_scripts_to_faces, Option.add_prefix("apply_scripts_to_faces")))
 
             with gr.Accordion("(4) Paste the Faces", open=False):
                 apply_inside_mask_only = gr.Checkbox(
                     label="Apply inside mask only ",
-                    value=True
+                    value=Option.DEFAULT_APPLY_INSIDE_MASK_ONLY
                 )
-                self.components.append((apply_inside_mask_only, self.add_prefix("apply_inside_mask_only")))
+                self.components.append((apply_inside_mask_only, Option.add_prefix("apply_inside_mask_only")))
 
             with gr.Accordion("(5) Blend the entire image", open=False):
                 strength2 = gr.Slider(
                     minimum=0.0,
                     maximum=1.0,
                     step=0.05,
-                    value=0.0,
+                    value=Option.DEFAULT_STRENGTH2,
                     label="Denoising strength for the entire image ",
                 )
-                self.components.append((strength2, self.add_prefix("strength2")))
+                self.components.append((strength2, Option.add_prefix("strength2")))
 
         return [
             face_margin,
@@ -233,6 +317,7 @@ class Script(scripts.Script):
             face_size,
             use_minimal_area,
             ignore_larger_faces,
+            targets,
         ]
 
     def get_face_models(self):
@@ -245,58 +330,20 @@ class Script(scripts.Script):
         )
         return (mask_model, detection_model)
 
-    def run(
-        self,
-        o: StableDiffusionProcessing,
-        face_margin: float,
-        confidence: float,
-        strength1: float,
-        strength2: float,
-        max_face_count: int,
-        mask_size: int,
-        mask_blur: int,
-        prompt_for_face: str,
-        apply_inside_mask_only: bool,
-        save_original_image: bool,
-        show_intermediate_steps: bool,
-        apply_scripts_to_faces: bool,
-        face_size: int,
-        use_minimal_area: bool,
-        ignore_larger_faces: bool,
-    ):
-
+    def run(self, o: StableDiffusionProcessing, *args):
+        option = Option(*args)
         mask_model, detection_model = self.get_face_models()
 
-        if isinstance(o, StableDiffusionProcessingImg2Img) and o.n_iter == 1 and o.batch_size == 1 and not apply_scripts_to_faces:
-            return self.__proc_image(o, mask_model, detection_model,
-                                     face_margin=face_margin, confidence=confidence,
-                                     strength1=strength1, strength2=strength2,
-                                     max_face_count=max_face_count, mask_size=mask_size,
-                                     mask_blur=mask_blur, prompt_for_face=prompt_for_face,
-                                     apply_inside_mask_only=apply_inside_mask_only,
-                                     show_intermediate_steps=show_intermediate_steps,
-                                     apply_scripts_to_faces=apply_scripts_to_faces,
-                                     face_size=face_size,
-                                     use_minimal_area=use_minimal_area,
-                                     ignore_larger_faces=ignore_larger_faces)
+        if isinstance(o, StableDiffusionProcessingImg2Img) and o.n_iter == 1 and o.batch_size == 1 and not option.apply_scripts_to_faces:
+            return self.__proc_image(o, mask_model, detection_model, option)
         else:
             shared.state.job_count = o.n_iter * 3
-            if not save_original_image:
+            if not option.save_original_image:
                 o.do_not_save_samples = True
             res = process_images(o)
             o.do_not_save_samples = False
 
-            return self.proc_images(mask_model, detection_model, o, res,
-                                    face_margin=face_margin, confidence=confidence,
-                                    strength1=strength1, strength2=strength2,
-                                    max_face_count=max_face_count, mask_size=mask_size,
-                                    mask_blur=mask_blur, prompt_for_face=prompt_for_face,
-                                    apply_inside_mask_only=apply_inside_mask_only,
-                                    show_intermediate_steps=show_intermediate_steps,
-                                    apply_scripts_to_faces=apply_scripts_to_faces,
-                                    face_size=face_size,
-                                    use_minimal_area=use_minimal_area,
-                                    ignore_larger_faces=ignore_larger_faces)
+            return self.proc_images(mask_model, detection_model, o, res, option)
 
     def proc_images(
         self,
@@ -304,20 +351,7 @@ class Script(scripts.Script):
         detection_model: RetinaFace,
         o: StableDiffusionProcessing,
         res: Processed,
-        face_margin: float,
-        confidence: float,
-        strength1: float,
-        strength2: float,
-        max_face_count: int,
-        mask_size: int,
-        mask_blur: int,
-        prompt_for_face: str,
-        apply_inside_mask_only: bool,
-        show_intermediate_steps: bool,
-        apply_scripts_to_faces: bool,
-        face_size: int,
-        use_minimal_area: bool,
-        ignore_larger_faces: bool,
+        option: Option
     ):
         edited_images, all_seeds, all_prompts, infotexts = [], [], [], []
         seed_index = 0
@@ -340,18 +374,7 @@ class Script(scripts.Script):
             if subseed_index < len(res.all_subseeds):
                 p.subseed = res.all_subseeds[subseed_index]
                 subseed_index += 1
-            proc = self.__proc_image(p, mask_model, detection_model,
-                                     face_margin=face_margin, confidence=confidence,
-                                     strength1=strength1, strength2=strength2,
-                                     max_face_count=max_face_count, mask_size=mask_size,
-                                     mask_blur=mask_blur, prompt_for_face=prompt_for_face,
-                                     apply_inside_mask_only=apply_inside_mask_only,
-                                     pre_proc_image=image,
-                                     show_intermediate_steps=show_intermediate_steps,
-                                     apply_scripts_to_faces=apply_scripts_to_faces,
-                                     face_size=face_size,
-                                     use_minimal_area=use_minimal_area,
-                                     ignore_larger_faces=ignore_larger_faces)
+            proc = self.__proc_image(p, mask_model, detection_model, option, image)
             edited_images.extend(proc.images)
             all_seeds.extend(proc.all_seeds)
             all_prompts.extend(proc.all_prompts)
@@ -378,47 +401,17 @@ class Script(scripts.Script):
     def __proc_image(self, p: StableDiffusionProcessingImg2Img,
                      mask_model: BiSeNet,
                      detection_model: RetinaFace,
-                     face_margin: float,
-                     confidence: float,
-                     strength1: float,
-                     strength2: float,
-                     max_face_count: int,
-                     mask_size: int,
-                     mask_blur: int,
-                     prompt_for_face: str,
-                     apply_inside_mask_only: bool,
-                     pre_proc_image: Image = None,
-                     show_intermediate_steps: bool = False,
-                     apply_scripts_to_faces: bool = False,
-                     face_size: int = 512,
-                     use_minimal_area: bool = False,
-                     ignore_larger_faces: bool = True) -> Processed:
-        params = {
-            self.add_prefix("enabled"): True,
-            self.add_prefix("face_margin"): face_margin,
-            self.add_prefix("confidence"): confidence,
-            self.add_prefix("strength1"): strength1,
-            self.add_prefix("strength2"): strength2,
-            self.add_prefix("max_face_count"): max_face_count,
-            self.add_prefix("mask_size"): mask_size,
-            self.add_prefix("mask_blur"): mask_blur,
-            self.add_prefix("prompt_for_face"): prompt_for_face if len(prompt_for_face) > 0 else '""',
-            self.add_prefix("apply_inside_mask_only"): apply_inside_mask_only,
-            self.add_prefix("apply_scripts_to_faces"): apply_scripts_to_faces,
-            self.add_prefix("face_size"): face_size,
-            self.add_prefix("use_minimal_area"): use_minimal_area,
-            self.add_prefix("ignore_larger_faces"): ignore_larger_faces,
-        }
-
-        apply_scripts_to_faces = False
+                     option: Option,
+                     pre_proc_image: Image = None) -> Processed:
+        params = option.to_dict()
 
         if hasattr(p.init_images[0], 'mode') and p.init_images[0].mode != 'RGB':
             p.init_images[0] = p.init_images[0].convert('RGB')
 
         entire_image = np.array(p.init_images[0])
         faces = self.__crop_face(
-            detection_model, p.init_images[0], face_margin, confidence, face_size, ignore_larger_faces)
-        faces = faces[:max_face_count]
+            detection_model, p.init_images[0], option.face_margin, option.confidence, option.face_size, option.ignore_larger_faces)
+        faces = faces[:option.max_face_count]
         faces = sorted(faces, key=attrgetter("center"))
         entire_mask_image = np.zeros_like(entire_image)
 
@@ -438,13 +431,14 @@ class Script(scripts.Script):
         output_images = []
 
         wildcards_script = None
-        for script in p.scripts.alwayson_scripts:
-            if script.filename.endswith("stable-diffusion-webui-wildcards/scripts/wildcards.py"):
-                wildcards_script = script
-        face_prompts = self.__get_face_prompts(len(faces), prompt_for_face, entire_prompt)
+        if p.scripts is not None:
+            for script in p.scripts.alwayson_scripts:
+                if script.filename.endswith("stable-diffusion-webui-wildcards/scripts/wildcards.py"):
+                    wildcards_script = script
+        face_prompts = self.__get_face_prompts(len(faces), option.prompt_for_face, entire_prompt)
         face_prompt_index = 0
 
-        if not apply_scripts_to_faces:
+        if not option.apply_scripts_to_faces:
             p.scripts = None
 
         for face in faces:
@@ -454,7 +448,7 @@ class Script(scripts.Script):
             p.init_images = [face.image]
             p.width = face.image.width
             p.height = face.image.height
-            p.denoising_strength = strength1
+            p.denoising_strength = option.strength1
             p.prompt = face_prompts[face_prompt_index]
             if wildcards_script is not None:
                 p.prompt = self.__apply_wildcards(wildcards_script, p.prompt, face_prompt_index)
@@ -469,19 +463,19 @@ class Script(scripts.Script):
                 proc.images[0] = proc.images[0].convert('RGB')
 
             face_image = np.array(proc.images[0])
-            if use_minimal_area:
+            if option.use_minimal_area:
                 face_image_for_mask = self.__mask_non_face_areas(face_image, face.face_area_on_image)
             else:
                 face_image_for_mask = face_image
 
-            mask_image = self.__to_mask_image(mask_model, face_image_for_mask, mask_size)
+            mask_image = self.__to_mask_image(mask_model, face_image_for_mask, option.mask_size, option.targets)
 
-            if mask_blur > 0:
-                mask_image = cv2.blur(mask_image, (mask_blur, mask_blur))
+            if option.mask_blur > 0:
+                mask_image = cv2.blur(mask_image, (option.mask_blur, option.mask_blur))
 
-            if show_intermediate_steps:
+            if option.show_intermediate_steps:
                 feature = self.__get_feature(p.prompt, entire_prompt)
-                mask_info = f"size:{mask_size}, blur:{mask_blur}"
+                mask_info = f"size:{option.mask_size}, blur:{option.mask_blur}"
                 output_images.append(Image.fromarray(self.__add_comment(face_image, feature)))
                 output_images.append(Image.fromarray(self.__add_comment(self.__to_masked_image(mask_image, face_image), mask_info)))
 
@@ -490,7 +484,7 @@ class Script(scripts.Script):
             mask_image = cv2.resize(mask_image, dsize=(
                 face.width, face.height))
 
-            if use_minimal_area:
+            if option.use_minimal_area:
                 l, t, r, b = face.face_area
                 face_image = face_image[t - face.top: b - face.top, l - face.left: r - face.left]
                 mask_image = mask_image[t - face.top: b - face.top, l - face.left: r - face.left]
@@ -499,14 +493,13 @@ class Script(scripts.Script):
                 face.bottom = b
                 face.right = r
 
-            if apply_inside_mask_only:
+            if option.apply_inside_mask_only:
                 face_background = entire_image[
                     face.top: face.bottom,
                     face.left: face.right,
                 ]
                 face_fg = (face_image * (mask_image/255.0)).astype('uint8')
-                face_bg = (face_background *
-                           (1 - (mask_image/255.0))).astype('uint8')
+                face_bg = (face_background * (1 - (mask_image/255.0))).astype('uint8')
                 face_image = face_fg + face_bg
 
             entire_image[
@@ -523,8 +516,8 @@ class Script(scripts.Script):
         p.width = entire_width
         p.height = entire_height
         p.init_images = [Image.fromarray(entire_image)]
-        p.denoising_strength = strength2
-        p.mask_blur = mask_blur
+        p.denoising_strength = option.strength2
+        p.mask_blur = option.mask_blur
         p.inpainting_mask_invert = 1
         p.inpainting_fill = 1
         p.image_mask = Image.fromarray(entire_mask_image)
@@ -537,7 +530,7 @@ class Script(scripts.Script):
         else:
             proc = self.__save_images(p)
 
-        if show_intermediate_steps:
+        if option.show_intermediate_steps:
             output_images.append(p.init_images[0])
             if p.denoising_strength > 0:
                 output_images.append(Image.fromarray(
@@ -597,9 +590,6 @@ class Script(scripts.Script):
         return Processed(p, images_list=p.init_images, seed=p.seed,
                          info=infotext, subseed=p.subseed, index_of_first_image=0, infotexts=[infotext])
 
-    def add_prefix(self, text: str) -> str:
-        return "face_editor_" + text
-
     def __extend_infos(self, infos: list, image_count: int):
         return infos.extend([infos[0]] * (image_count - len(infos)))
 
@@ -625,7 +615,7 @@ class Script(scripts.Script):
 
         return sorted(areas, key=attrgetter("height"), reverse=True)
 
-    def __to_mask_image(self, mask_model: BiSeNet, face_image: Image, mask_size: int) -> np.ndarray:
+    def __to_mask_image(self, mask_model: BiSeNet, face_image: Image, mask_size: int, targets: list) -> np.ndarray:
         face_image = np.array(face_image)
         h, w, _ = face_image.shape
 
@@ -644,7 +634,7 @@ class Script(scripts.Script):
         face = face.squeeze(0).cpu().numpy().argmax(0)
         face = face.copy().astype(np.uint8)
 
-        mask = self.__to_mask(face)
+        mask = self.__to_mask(face, targets)
         if mask_size > 0:
             mask = cv2.dilate(mask, np.ones((5, 5), np.uint8), iterations=mask_size)
 
@@ -653,12 +643,23 @@ class Script(scripts.Script):
 
         return mask
 
-    def __to_mask(self, face: np.ndarray) -> np.ndarray:
+    def __to_mask(self, face: np.ndarray, targets: list) -> np.ndarray:
+        keep_face = "Face" in targets
+        keep_neck = "Neck" in targets
+        keep_hair = "Hair" in targets
+        keep_hat = "Hat" in targets
+
         mask = np.zeros((face.shape[0], face.shape[1], 3), dtype=np.uint8)
         num_of_class = np.max(face)
         for i in range(1, num_of_class + 1):
             index = np.where(face == i)
-            if i < 14:
+            if i < 14 and keep_face:
+                mask[index[0], index[1], :] = [255, 255, 255]
+            elif i == 14 and keep_neck:
+                mask[index[0], index[1], :] = [255, 255, 255]
+            elif i == 17 and keep_hair:
+                mask[index[0], index[1], :] = [255, 255, 255]
+            elif i == 18 and keep_hat:
                 mask[index[0], index[1], :] = [255, 255, 255]
         return mask
 
