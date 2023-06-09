@@ -1,7 +1,9 @@
-import gradio as gr
 import modules.scripts as scripts
 
-from scripts import face_editor
+from scripts.entities.option import Option
+from scripts.inferencers.factory import InferencerFactory
+from scripts.ui.ui_builder import UiBuilder
+from scripts.use_cases.image_processor import ImageProcessor
 
 
 class FaceEditorExtension(scripts.Script):
@@ -16,17 +18,15 @@ class FaceEditorExtension(scripts.Script):
         return scripts.AlwaysVisible
 
     def ui(self, is_img2img):
-        with gr.Accordion("Face Editor", open=False, elem_id="sd-face-editor-extension"):
-            script = face_editor.Script()
-            enabled = gr.Checkbox(label="Enabled", value=False)
-            components = [enabled] + script.ui(is_img2img)
-            self.infotext_fields = [(enabled, face_editor.Option.add_prefix("enabled"))] + script.components
-            return components
+        builder = UiBuilder(True)
+        components = builder.build(is_img2img)
+        self.infotext_fields = builder.infotext_fields
+        return components
 
     def before_process_batch(self, p, enabled: bool, *args, **kwargs):
         if not enabled or self.__is_running:
             return
-        option = face_editor.Option(*args)
+        option = Option(*args)
         if not option.save_original_image:
             p.do_not_save_samples = True
 
@@ -40,18 +40,15 @@ class FaceEditorExtension(scripts.Script):
         if not enabled or self.__is_running:
             return
 
-        option = face_editor.Option(*args)
+        option = Option(*args)
         if isinstance(enabled, dict):
-            option.update_by(enabled)
+            option.update_by_dict(enabled)
 
         try:
             self.__is_running = True
 
             o.do_not_save_samples = False
-            script = face_editor.Script()
-            mask_model, detection_model = script.get_face_models()
-
-            script.proc_images(mask_model, detection_model, o, res, option)
+            ImageProcessor(InferencerFactory.create()).proc_images(o, res, option)
 
         finally:
             self.__is_running = False
