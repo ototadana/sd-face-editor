@@ -30,7 +30,7 @@ class FaceEditorExtension(scripts.Script):
         if not option.save_original_image:
             p.do_not_save_samples = True
 
-        if p.scripts is not None and hasattr(p.scripts, 'alwayson_scripts') and p.scripts.alwayson_scripts[-1] != self:
+        if p.scripts is not None and hasattr(p.scripts, "alwayson_scripts") and p.scripts.alwayson_scripts[-1] != self:
             for i, e in enumerate(p.scripts.alwayson_scripts):
                 if e == self:
                     p.scripts.alwayson_scripts.append(p.scripts.alwayson_scripts.pop(i))

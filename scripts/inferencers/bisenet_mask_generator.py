@@ -16,7 +16,7 @@ class BiSeNetMaskGenerator(MaskGenerator):
     def __init__(self) -> None:
         self.mask_model = init_parsing_model(device=shared.device)
 
-    def generate_mask(self, face_image: Image, mask_size: int, targets: List[str]) -> np.ndarray:
+    def generate_mask(self, face_image: Image, mask_size: int, affected_areas: List[str]) -> np.ndarray:
         face_image = np.array(face_image)
         h, w, _ = face_image.shape
 
@@ -25,8 +25,7 @@ class BiSeNetMaskGenerator(MaskGenerator):
             rh = (int(h * (512 / h)) // 8) * 8
             face_image = cv2.resize(face_image, dsize=(rw, rh))
 
-        face_tensor = img2tensor(face_image.astype(
-            "float32") / 255.0, float32=True)
+        face_tensor = img2tensor(face_image.astype("float32") / 255.0, float32=True)
         normalize(face_tensor, (0.5, 0.5, 0.5), (0.5, 0.5, 0.5), inplace=True)
         face_tensor = torch.unsqueeze(face_tensor, 0).to(shared.device)
 
@@ -35,7 +34,7 @@ class BiSeNetMaskGenerator(MaskGenerator):
         face = face.squeeze(0).cpu().numpy().argmax(0)
         face = face.copy().astype(np.uint8)
 
-        mask = self.__to_mask(face, targets)
+        mask = self.__to_mask(face, affected_areas)
         if mask_size > 0:
             mask = cv2.dilate(mask, np.ones((5, 5), np.uint8), iterations=mask_size)
 
@@ -44,11 +43,11 @@ class BiSeNetMaskGenerator(MaskGenerator):
 
         return mask
 
-    def __to_mask(self, face: np.ndarray, targets: List[str]) -> np.ndarray:
-        keep_face = "Face" in targets
-        keep_neck = "Neck" in targets
-        keep_hair = "Hair" in targets
-        keep_hat = "Hat" in targets
+    def __to_mask(self, face: np.ndarray, affected_areas: List[str]) -> np.ndarray:
+        keep_face = "Face" in affected_areas
+        keep_neck = "Neck" in affected_areas
+        keep_hair = "Hair" in affected_areas
+        keep_hat = "Hat" in affected_areas
 
         mask = np.zeros((face.shape[0], face.shape[1], 3), dtype=np.uint8)
         num_of_class = np.max(face)

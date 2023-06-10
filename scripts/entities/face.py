@@ -12,7 +12,8 @@ class Face:
         left, top, right, bottom = face_area.to_square()
 
         self.left, self.top, self.right, self.bottom = self.__ensure_margin(
-            left, top, right, bottom, entire_image, face_margin)
+            left, top, right, bottom, entire_image, face_margin
+        )
 
         self.width = self.right - self.left
         self.height = self.bottom - self.top
@@ -22,22 +23,22 @@ class Face:
 
     def __get_face_area_on_image(self, face_size: int):
         scaleFactor = face_size / self.width
-        return (int((self.face_area.left - self.left) * scaleFactor),
-                int((self.face_area.top - self.top) * scaleFactor),
-                int((self.face_area.right - self.left) * scaleFactor),
-                int((self.face_area.bottom - self.top) * scaleFactor))
+        return (
+            int((self.face_area.left - self.left) * scaleFactor),
+            int((self.face_area.top - self.top) * scaleFactor),
+            int((self.face_area.right - self.left) * scaleFactor),
+            int((self.face_area.bottom - self.top) * scaleFactor),
+        )
 
     def __crop_face_image(self, entire_image: np.ndarray, face_size: int):
-        cropped = entire_image[self.top: self.bottom, self.left: self.right, :]
-        return Image.fromarray(
-            cv2.resize(cropped, dsize=(face_size, face_size)))
+        cropped = entire_image[self.top : self.bottom, self.left : self.right, :]
+        return Image.fromarray(cv2.resize(cropped, dsize=(face_size, face_size)))
 
     def __ensure_margin(self, left: int, top: int, right: int, bottom: int, entire_image: np.ndarray, margin: float):
         entire_height, entire_width = entire_image.shape[:2]
 
         side_length = right - left
-        margin = min(min(entire_height, entire_width) /
-                     side_length, margin)
+        margin = min(min(entire_height, entire_width) / side_length, margin)
         diff = int((side_length * margin - side_length) / 2)
 
         top = top - diff

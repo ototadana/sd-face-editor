@@ -14,7 +14,7 @@ class Option:
     DEFAULT_FACE_SIZE = 512
     DEFAULT_USE_MINIMAL_AREA = False
     DEFAULT_IGNORE_LARGER_FACES = True
-    DEFAULT_TARGETS = ["Face"]
+    DEFAULT_AFFECTED_AREAS = ["Face"]
 
     def __init__(self, *args) -> None:
         self.face_margin = Option.DEFAULT_FACE_MARGIN
@@ -32,7 +32,7 @@ class Option:
         self.face_size = Option.DEFAULT_FACE_SIZE
         self.use_minimal_area = Option.DEFAULT_USE_MINIMAL_AREA
         self.ignore_larger_faces = Option.DEFAULT_IGNORE_LARGER_FACES
-        self.targets = Option.DEFAULT_TARGETS
+        self.affected_areas = Option.DEFAULT_AFFECTED_AREAS
 
         if len(args) > 0 and isinstance(args[0], dict):
             self.update_by_dict(args[0])
@@ -51,14 +51,20 @@ class Option:
         self.mask_size = args[5] if arg_len > 5 and isinstance(args[5], int) else self.mask_size
         self.mask_blur = args[6] if arg_len > 6 and isinstance(args[6], int) else self.mask_blur
         self.prompt_for_face = args[7] if arg_len > 7 and isinstance(args[7], str) else self.prompt_for_face
-        self.apply_inside_mask_only = args[8] if arg_len > 8 and isinstance(args[8], bool) else self.apply_inside_mask_only
+        self.apply_inside_mask_only = (
+            args[8] if arg_len > 8 and isinstance(args[8], bool) else self.apply_inside_mask_only
+        )
         self.save_original_image = args[9] if arg_len > 9 and isinstance(args[9], bool) else self.save_original_image
-        self.show_intermediate_steps = args[10] if arg_len > 10 and isinstance(args[10], bool) else self.show_intermediate_steps
-        self.apply_scripts_to_faces = args[11] if arg_len > 11 and isinstance(args[11], bool) else self.apply_scripts_to_faces
+        self.show_intermediate_steps = (
+            args[10] if arg_len > 10 and isinstance(args[10], bool) else self.show_intermediate_steps
+        )
+        self.apply_scripts_to_faces = (
+            args[11] if arg_len > 11 and isinstance(args[11], bool) else self.apply_scripts_to_faces
+        )
         self.face_size = args[12] if arg_len > 12 and isinstance(args[12], int) else self.face_size
         self.use_minimal_area = args[13] if arg_len > 13 and isinstance(args[13], bool) else self.use_minimal_area
         self.ignore_larger_faces = args[14] if arg_len > 14 and isinstance(args[14], bool) else self.ignore_larger_faces
-        self.targets = args[15] if arg_len > 15 and isinstance(args[15], list) else self.targets
+        self.affected_areas = args[15] if arg_len > 15 and isinstance(args[15], list) else self.affected_areas
 
     def update_by_dict(self, params: dict) -> None:
         self.face_margin = params.get("face_margin", self.face_margin)
@@ -76,7 +82,7 @@ class Option:
         self.face_size = params.get("face_size", self.face_size)
         self.use_minimal_area = params.get("use_minimal_area", self.use_minimal_area)
         self.ignore_larger_faces = params.get("ignore_larger_faces", self.ignore_larger_faces)
-        self.targets = params.get("targets", self.targets)
+        self.affected_areas = params.get("affected_areas", self.affected_areas)
 
     def to_dict(self) -> dict:
         return {
@@ -94,7 +100,7 @@ class Option:
             Option.add_prefix("face_size"): self.face_size,
             Option.add_prefix("use_minimal_area"): self.use_minimal_area,
             Option.add_prefix("ignore_larger_faces"): self.ignore_larger_faces,
-            Option.add_prefix("targets"): str.join(";", self.targets),
+            Option.add_prefix("affected_areas"): str.join(";", self.affected_areas),
         }
 
     @staticmethod

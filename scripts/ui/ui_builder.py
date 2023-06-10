@@ -21,19 +21,16 @@ class UiBuilder:
 
     def __build(self, is_img2img: bool):
         use_minimal_area = gr.Checkbox(
-            label="Use minimal area (for close faces)",
-            value=Option.DEFAULT_USE_MINIMAL_AREA)
+            label="Use minimal area (for close faces)", value=Option.DEFAULT_USE_MINIMAL_AREA
+        )
         self.infotext_fields.append((use_minimal_area, Option.add_prefix("use_minimal_area")))
 
-        save_original_image = gr.Checkbox(
-            label="Save original image",
-            value=Option.DEFAULT_SAVE_ORIGINAL_IMAGE
-        )
+        save_original_image = gr.Checkbox(label="Save original image", value=Option.DEFAULT_SAVE_ORIGINAL_IMAGE)
         self.infotext_fields.append((save_original_image, Option.add_prefix("save_original_image")))
 
         show_intermediate_steps = gr.Checkbox(
-            label="Show intermediate steps",
-            value=Option.DEFAULT_SHOW_INTERMEDIATE_STEPS)
+            label="Show intermediate steps", value=Option.DEFAULT_SHOW_INTERMEDIATE_STEPS
+        )
         self.infotext_fields.append((show_intermediate_steps, Option.add_prefix("show_intermediate_steps")))
 
         prompt_for_face = gr.Textbox(
@@ -44,17 +41,17 @@ class UiBuilder:
         )
         self.infotext_fields.append((prompt_for_face, Option.add_prefix("prompt_for_face")))
 
-        targets = gr.CheckboxGroup(label="Targets", choices=["Face", "Hair", "Hat", "Neck"], value=Option.DEFAULT_TARGETS)
-        targets_key = Option.add_prefix("targets")
-        self.infotext_fields.append((targets, targets_key))
-        ParamValueParser.add(targets_key, list)
+        affected_areas = gr.CheckboxGroup(
+            label="Affected areas", choices=["Face", "Hair", "Hat", "Neck"], value=Option.DEFAULT_AFFECTED_AREAS
+        )
+        affected_areas_key = Option.add_prefix("affected_areas")
+        self.infotext_fields.append((affected_areas, affected_areas_key))
+        ParamValueParser.add(affected_areas_key, list)
 
-        mask_size = gr.Slider(label="Mask size", minimum=0,
-                              maximum=64, step=1, value=Option.DEFAULT_MASK_SIZE)
+        mask_size = gr.Slider(label="Mask size", minimum=0, maximum=64, step=1, value=Option.DEFAULT_MASK_SIZE)
         self.infotext_fields.append((mask_size, Option.add_prefix("mask_size")))
 
-        mask_blur = gr.Slider(label="Mask blur ", minimum=0,
-                              maximum=64, step=1, value=Option.DEFAULT_MASK_BLUR)
+        mask_blur = gr.Slider(label="Mask blur ", minimum=0, maximum=64, step=1, value=Option.DEFAULT_MASK_BLUR)
         self.infotext_fields.append((mask_blur, Option.add_prefix("mask_blur")))
 
         with gr.Accordion("Advanced Options", open=False):
@@ -83,13 +80,17 @@ class UiBuilder:
                 )
                 self.infotext_fields.append((face_margin, Option.add_prefix("face_margin")))
 
-                face_size = gr.Slider(label="Size of the face when recreating",
-                                      minimum=64, maximum=2048, step=16, value=Option.DEFAULT_FACE_SIZE)
+                face_size = gr.Slider(
+                    label="Size of the face when recreating",
+                    minimum=64,
+                    maximum=2048,
+                    step=16,
+                    value=Option.DEFAULT_FACE_SIZE,
+                )
                 self.infotext_fields.append((face_size, Option.add_prefix("face_size")))
 
                 ignore_larger_faces = gr.Checkbox(
-                    label="Ignore faces larger than specified size",
-                    value=Option.DEFAULT_IGNORE_LARGER_FACES
+                    label="Ignore faces larger than specified size", value=Option.DEFAULT_IGNORE_LARGER_FACES
                 )
                 self.infotext_fields.append((ignore_larger_faces, Option.add_prefix("ignore_larger_faces")))
 
@@ -104,15 +105,13 @@ class UiBuilder:
                 self.infotext_fields.append((strength1, Option.add_prefix("strength1")))
 
                 apply_scripts_to_faces = gr.Checkbox(
-                    label="Apply scripts to faces",
-                    visible=False,
-                    value=Option.DEFAULT_APPLY_SCRIPTS_TO_FACES)
+                    label="Apply scripts to faces", visible=False, value=Option.DEFAULT_APPLY_SCRIPTS_TO_FACES
+                )
                 self.infotext_fields.append((apply_scripts_to_faces, Option.add_prefix("apply_scripts_to_faces")))
 
             with gr.Accordion("(4) Paste the Faces", open=False):
                 apply_inside_mask_only = gr.Checkbox(
-                    label="Apply inside mask only ",
-                    value=Option.DEFAULT_APPLY_INSIDE_MASK_ONLY
+                    label="Apply inside mask only ", value=Option.DEFAULT_APPLY_INSIDE_MASK_ONLY
                 )
                 self.infotext_fields.append((apply_inside_mask_only, Option.add_prefix("apply_inside_mask_only")))
 
@@ -142,5 +141,5 @@ class UiBuilder:
             face_size,
             use_minimal_area,
             ignore_larger_faces,
-            targets,
+            affected_areas,
         ]

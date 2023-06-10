@@ -1,8 +1,6 @@
 import modules.scripts as scripts
 import modules.shared as shared
-from modules.processing import (StableDiffusionProcessing,
-                                StableDiffusionProcessingImg2Img,
-                                process_images)
+from modules.processing import StableDiffusionProcessing, StableDiffusionProcessingImg2Img, process_images
 
 from scripts.entities.option import Option
 from scripts.inferencers.factory import InferencerFactory
@@ -27,7 +25,12 @@ class Script(scripts.Script):
         option = Option(*args)
         processor = ImageProcessor(InferencerFactory.create())
 
-        if isinstance(o, StableDiffusionProcessingImg2Img) and o.n_iter == 1 and o.batch_size == 1 and not option.apply_scripts_to_faces:
+        if (
+            isinstance(o, StableDiffusionProcessingImg2Img)
+            and o.n_iter == 1
+            and o.batch_size == 1
+            and not option.apply_scripts_to_faces
+        ):
             return processor.proc_image(o, option)
         else:
             shared.state.job_count = o.n_iter * 3

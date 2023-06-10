@@ -11,7 +11,7 @@ from scripts.use_cases.face_detector import FaceDetector
 
 class RetinafaceDetector(FaceDetector):
     def __init__(self) -> None:
-        if hasattr(retinaface, 'device'):
+        if hasattr(retinaface, "device"):
             retinaface.device = shared.device
         self.detection_model = init_detection_model("retinaface_resnet50", device=shared.device)
 

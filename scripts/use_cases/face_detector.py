@@ -7,7 +7,6 @@ from scripts.entities.rect import Rect
 
 
 class FaceDetector(ABC):
-
     @abstractmethod
     def detect_faces(self, image: Image, confidence: float) -> List[Rect]:
         pass
