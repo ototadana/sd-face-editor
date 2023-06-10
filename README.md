@@ -32,8 +32,16 @@ This software improves facial images in these features:
 ### Contour discomfort
 If you feel uncomfortable with the facial contours, try increasing the **"Mask size"** value. This discomfort often occurs when the face is not facing straight ahead.
 
-
 ![Mask size](./images/tips-02.jpg)
+
+If the forelock interferes with rendering the face properly, generally, selecting "Hair" from **"Affected areas"** results in a more natural image.
+
+![Affected ares - UI](./images/tips-08.png)
+
+This setting modifies the mask area as illustrated below: 
+
+![Affected ares - Mask images](./images/tips-07.jpg)
+
 
 ---
 ### When multiple faces are close together
@@ -70,7 +78,7 @@ If you wish to modify the face of an already existing image instead of creating 
    1. Click **PNG Info** tab.
    2. Upload the image to be edited.
    3. Click **Send to img2img** button.
-2. Set the value of **"Denoising strength"** of img2img to 0. This setting is good for preventing changes to areas other than the faces and for reducing processing time.
+2. Set the value of **"Denoising strength"** of img2img to `0`. This setting is good for preventing changes to areas other than the faces and for reducing processing time.
 3. Click "Face Editor" and check "Enabled".
 4. Then, set the desired parameters and click the Generate button.
 
@@ -198,13 +206,17 @@ If the border lines are too prominent, increase this value.
 If you want to use this script as an extension (alwayson_scripts) in the [API](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/API), specify **"face editor ex"** as the script name as follows:
 
 ```
-    "alwayson_scripts": {
-        "face editor ex": {
-            "args": [{"prompt_for_face": "smile"}]
-        },
+   "alwayson_scripts": {
+      "face editor ex": {
+         "args": [{"prompt_for_face": "smile"}]
+      },
 ```
 
-- By specifying an object as the first argument of args as above, parameters can be specified by keywords.
-- See [source code](https://github.com/ototadana/sd-face-editor/blob/main/scripts/face_editor_extension.py) for available keywords
+By specifying an **object** as the first argument of args as above, parameters can be specified by keywords. We recommend this approach as it can minimize the impact of modifications to the software. If you use a script instead of an extension, you can also specify parameters in the same way as follows:
 
-For more information, please see: [here](https://github.com/ototadana/sd-face-editor/issues/57).
+```
+   "script_name": "face editor",
+   "script_args": [{"prompt_for_face": "smile"}],
+```
+
+- See [source code](https://github.com/ototadana/sd-face-editor/blob/main/scripts/entities/option.py) for available keywords.
