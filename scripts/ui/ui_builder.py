@@ -2,6 +2,7 @@ import gradio as gr
 
 from scripts.entities.option import Option
 from scripts.ui.param_value_parser import ParamValueParser
+from scripts.use_cases.inferencer_set import InferencerSet
 
 
 class UiBuilder:
@@ -24,6 +25,13 @@ class UiBuilder:
             label="Use minimal area (for close faces)", value=Option.DEFAULT_USE_MINIMAL_AREA
         )
         self.infotext_fields.append((use_minimal_area, Option.add_prefix("use_minimal_area")))
+
+        image_style = gr.Dropdown(
+            choices=InferencerSet.names(),
+            label="Facial image style",
+            value=Option.DEFAULT_IMAGE_STYLE,
+        )
+        self.infotext_fields.append((image_style, Option.add_prefix("image_style")))
 
         with gr.Row():
             save_original_image = gr.Checkbox(label="Save original image", value=Option.DEFAULT_SAVE_ORIGINAL_IMAGE)
@@ -147,4 +155,5 @@ class UiBuilder:
             ignore_larger_faces,
             affected_areas,
             show_original_image,
+            image_style,
         ]

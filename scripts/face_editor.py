@@ -3,7 +3,7 @@ import modules.shared as shared
 from modules.processing import StableDiffusionProcessing, StableDiffusionProcessingImg2Img, process_images
 
 from scripts.entities.option import Option
-from scripts.inferencers.factory import InferencerFactory
+from scripts.inferencers.inference_registry import InferencerRegistry
 from scripts.ui.ui_builder import UiBuilder
 from scripts.use_cases.image_processor import ImageProcessor
 
@@ -23,7 +23,7 @@ class Script(scripts.Script):
 
     def run(self, o: StableDiffusionProcessing, *args):
         option = Option(*args)
-        processor = ImageProcessor(InferencerFactory.create())
+        processor = ImageProcessor(InferencerRegistry.get(option.image_style))
 
         if (
             isinstance(o, StableDiffusionProcessingImg2Img)

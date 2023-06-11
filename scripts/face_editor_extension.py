@@ -1,7 +1,7 @@
 import modules.scripts as scripts
 
 from scripts.entities.option import Option
-from scripts.inferencers.factory import InferencerFactory
+from scripts.inferencers.inference_registry import InferencerRegistry
 from scripts.ui.ui_builder import UiBuilder
 from scripts.use_cases.image_processor import ImageProcessor
 
@@ -48,7 +48,7 @@ class FaceEditorExtension(scripts.Script):
             self.__is_running = True
 
             o.do_not_save_samples = False
-            ImageProcessor(InferencerFactory.create()).proc_images(o, res, option)
+            ImageProcessor(InferencerRegistry.get(option.image_style)).proc_images(o, res, option)
 
         finally:
             self.__is_running = False

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 import cv2
 import modules.shared as shared
@@ -6,9 +6,9 @@ import numpy as np
 import torch
 from facexlib.parsing import init_parsing_model
 from facexlib.utils.misc import img2tensor
-from PIL import Image
 from torchvision.transforms.functional import normalize
 
+from scripts.inferencers.face_area_mask_generator import FaceAreaMaskGenerator
 from scripts.use_cases.mask_generator import MaskGenerator
 
 
@@ -16,8 +16,19 @@ class BiSeNetMaskGenerator(MaskGenerator):
     def __init__(self) -> None:
         self.mask_model = init_parsing_model(device=shared.device)
 
-    def generate_mask(self, face_image: Image, mask_size: int, affected_areas: List[str]) -> np.ndarray:
-        face_image = np.array(face_image)
+    def generate_mask(
+        self,
+        face_image: np.ndarray,
+        mask_size: int,
+        affected_areas: List[str],
+        use_minimal_area: bool,
+        face_area_on_image: Tuple[int, int, int, int],
+    ) -> np.ndarray:
+        face_image = face_image.copy()
+
+        if use_minimal_area:
+            face_image = FaceAreaMaskGenerator.mask_non_face_areas(face_image, face_area_on_image)
+
         h, w, _ = face_image.shape
 
         if w != 512 or h != 512:

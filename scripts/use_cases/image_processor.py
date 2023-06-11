@@ -1,7 +1,7 @@
 import os
 import tempfile
 from operator import attrgetter
-from typing import List, Tuple
+from typing import List
 
 import cv2
 import modules.images as images
@@ -20,13 +20,13 @@ from PIL import Image
 from scripts.entities.face import Face
 from scripts.entities.option import Option
 from scripts.entities.rect import Rect
-from scripts.use_cases.inferencer_registry import InferencerRegistry
+from scripts.use_cases.inferencer_set import InferencerSet
 
 os.makedirs(os.path.join(tempfile.gettempdir(), "gradio"), exist_ok=True)
 
 
 class ImageProcessor:
-    def __init__(self, inferencers: InferencerRegistry) -> None:
+    def __init__(self, inferencers: InferencerSet) -> None:
         self.face_detector = inferencers.face_detector
         self.mask_generator = inferencers.mask_generator
 
@@ -143,12 +143,13 @@ class ImageProcessor:
                 proc.images[0] = proc.images[0].convert("RGB")
 
             face_image = np.array(proc.images[0])
-            if option.use_minimal_area:
-                face_image_for_mask = self.__mask_non_face_areas(face_image, face.face_area_on_image)
-            else:
-                face_image_for_mask = face_image
-
-            mask_image = self.mask_generator.generate_mask(face_image_for_mask, option.mask_size, option.affected_areas)
+            mask_image = self.mask_generator.generate_mask(
+                face_image,
+                option.mask_size,
+                option.affected_areas,
+                option.use_minimal_area,
+                face.face_area_on_image,
+            )
 
             if option.mask_blur > 0:
                 mask_image = cv2.blur(mask_image, (option.mask_blur, option.mask_blur))
@@ -161,8 +162,8 @@ class ImageProcessor:
                     Image.fromarray(self.__add_comment(self.__to_masked_image(mask_image, face_image), mask_info))
                 )
 
-            face_image = cv2.resize(face_image, dsize=(face.width, face.height))
-            mask_image = cv2.resize(mask_image, dsize=(face.width, face.height))
+            face_image = cv2.resize(face_image, dsize=(face.width, face.height), interpolation=cv2.INTER_AREA)
+            mask_image = cv2.resize(mask_image, dsize=(face.width, face.height), interpolation=cv2.INTER_AREA)
 
             if option.use_minimal_area:
                 l, t, r, b = face.face_area.to_tuple()
@@ -336,12 +337,3 @@ class ImageProcessor:
             areas.append(face)
 
         return sorted(areas, key=attrgetter("height"), reverse=True)
-
-    def __mask_non_face_areas(self, image: np.ndarray, face_area_on_image: Tuple[int, int, int, int]):
-        left, top, right, bottom = face_area_on_image
-        image = image.copy()
-        image[:top, :] = 0
-        image[bottom:, :] = 0
-        image[:, :left] = 0
-        image[:, right:] = 0
-        return image
