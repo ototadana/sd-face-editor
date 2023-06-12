@@ -1,8 +1,8 @@
 import gradio as gr
 
+import scripts.inferencers.registry as registry
 from scripts.entities.option import Option
 from scripts.ui.param_value_parser import ParamValueParser
-from scripts.use_cases.inferencer_set import InferencerSet
 
 
 class UiBuilder:
@@ -25,13 +25,6 @@ class UiBuilder:
             label="Use minimal area (for close faces)", value=Option.DEFAULT_USE_MINIMAL_AREA
         )
         self.infotext_fields.append((use_minimal_area, Option.add_prefix("use_minimal_area")))
-
-        image_style = gr.Dropdown(
-            choices=InferencerSet.names(),
-            label="Facial image style",
-            value=Option.DEFAULT_IMAGE_STYLE,
-        )
-        self.infotext_fields.append((image_style, Option.add_prefix("image_style")))
 
         with gr.Row():
             save_original_image = gr.Checkbox(label="Save original image", value=Option.DEFAULT_SAVE_ORIGINAL_IMAGE)
@@ -137,6 +130,22 @@ class UiBuilder:
                 )
                 self.infotext_fields.append((strength2, Option.add_prefix("strength2")))
 
+        with gr.Accordion("Experimental Features", open=False):
+            with gr.Row():
+                face_detector = gr.Dropdown(
+                    choices=registry.face_detector_names,
+                    label="Face Detector",
+                    value=Option.DEFAULT_FACE_DETECTOR,
+                )
+                self.infotext_fields.append((face_detector, Option.add_prefix("face_detector")))
+
+                mask_generator = gr.Dropdown(
+                    choices=registry.mask_generator_names,
+                    label="Mask Generator",
+                    value=Option.DEFAULT_MASK_GENERATOR,
+                )
+                self.infotext_fields.append((mask_generator, Option.add_prefix("mask_generator")))
+
         return [
             face_margin,
             confidence,
@@ -155,5 +164,6 @@ class UiBuilder:
             ignore_larger_faces,
             affected_areas,
             show_original_image,
-            image_style,
+            face_detector,
+            mask_generator,
         ]

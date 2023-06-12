@@ -6,6 +6,9 @@ from scripts.use_cases.mask_generator import MaskGenerator
 
 
 class FaceAreaMaskGenerator(MaskGenerator):
+    def name(self):
+        return "Rect"
+
     def generate_mask(
         self,
         face_image: np.ndarray,

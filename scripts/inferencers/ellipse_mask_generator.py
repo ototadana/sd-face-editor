@@ -8,6 +8,9 @@ from scripts.use_cases.mask_generator import MaskGenerator
 
 
 class EllipseMaskGenerator(MaskGenerator):
+    def name(self):
+        return "Ellipse"
+
     def generate_mask(
         self,
         face_image: np.ndarray,

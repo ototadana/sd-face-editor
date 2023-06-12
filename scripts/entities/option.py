@@ -1,6 +1,3 @@
-from scripts.use_cases.inferencer_set import InferencerSet
-
-
 class Option:
     DEFAULT_FACE_MARGIN = 1.6
     DEFAULT_CONFIDENCE = 0.97
@@ -19,7 +16,8 @@ class Option:
     DEFAULT_USE_MINIMAL_AREA = False
     DEFAULT_IGNORE_LARGER_FACES = True
     DEFAULT_AFFECTED_AREAS = ["Face"]
-    DEFAULT_IMAGE_STYLE = InferencerSet.Name.STANDARD.value
+    DEFAULT_FACE_DETECTOR = "Retinaface"
+    DEFAULT_MASK_GENERATOR = "BiSeNet"
 
     def __init__(self, *args) -> None:
         self.face_margin = Option.DEFAULT_FACE_MARGIN
@@ -39,7 +37,8 @@ class Option:
         self.ignore_larger_faces = Option.DEFAULT_IGNORE_LARGER_FACES
         self.affected_areas = Option.DEFAULT_AFFECTED_AREAS
         self.show_original_image = Option.DEFAULT_SHOW_ORIGINAL_IMAGE
-        self.image_style = Option.DEFAULT_IMAGE_STYLE
+        self.face_detector = Option.DEFAULT_FACE_DETECTOR
+        self.mask_generator = Option.DEFAULT_MASK_GENERATOR
 
         if len(args) > 0 and isinstance(args[0], dict):
             self.update_by_dict(args[0])
@@ -73,7 +72,8 @@ class Option:
         self.ignore_larger_faces = args[14] if arg_len > 14 and isinstance(args[14], bool) else self.ignore_larger_faces
         self.affected_areas = args[15] if arg_len > 15 and isinstance(args[15], list) else self.affected_areas
         self.show_original_image = args[16] if arg_len > 16 and isinstance(args[16], bool) else self.show_original_image
-        self.image_style = args[17] if arg_len > 17 and isinstance(args[17], str) else self.image_style
+        self.face_detector = args[17] if arg_len > 17 and isinstance(args[17], str) else self.face_detector
+        self.mask_generator = args[18] if arg_len > 18 and isinstance(args[18], str) else self.mask_generator
 
     def update_by_dict(self, params: dict) -> None:
         self.face_margin = params.get("face_margin", self.face_margin)
@@ -93,7 +93,8 @@ class Option:
         self.ignore_larger_faces = params.get("ignore_larger_faces", self.ignore_larger_faces)
         self.affected_areas = params.get("affected_areas", self.affected_areas)
         self.show_original_image = params.get("show_original_image", self.show_original_image)
-        self.image_style = params.get("image_style", self.image_style)
+        self.face_detector = params.get("face_detector", self.face_detector)
+        self.mask_generator = params.get("mask_generator", self.mask_generator)
 
     def to_dict(self) -> dict:
         return {
@@ -112,7 +113,8 @@ class Option:
             Option.add_prefix("use_minimal_area"): self.use_minimal_area,
             Option.add_prefix("ignore_larger_faces"): self.ignore_larger_faces,
             Option.add_prefix("affected_areas"): str.join(";", self.affected_areas),
-            Option.add_prefix("image_style"): self.image_style,
+            Option.add_prefix("face_detector"): self.face_detector,
+            Option.add_prefix("mask_generator"): self.mask_generator,
         }
 
     @staticmethod

@@ -6,6 +6,10 @@ import numpy as np
 
 class MaskGenerator(ABC):
     @abstractmethod
+    def name(self) -> str:
+        pass
+
+    @abstractmethod
     def generate_mask(
         self,
         face_image: np.ndarray,

@@ -16,6 +16,9 @@ class BiSeNetMaskGenerator(MaskGenerator):
     def __init__(self) -> None:
         self.mask_model = init_parsing_model(device=shared.device)
 
+    def name(self):
+        return "BiSeNet"
+
     def generate_mask(
         self,
         face_image: np.ndarray,

@@ -2,8 +2,8 @@ import modules.scripts as scripts
 import modules.shared as shared
 from modules.processing import StableDiffusionProcessing, StableDiffusionProcessingImg2Img, process_images
 
+import scripts.inferencers.registry as registry
 from scripts.entities.option import Option
-from scripts.inferencers.inference_registry import InferencerRegistry
 from scripts.ui.ui_builder import UiBuilder
 from scripts.use_cases.image_processor import ImageProcessor
 
@@ -23,7 +23,7 @@ class Script(scripts.Script):
 
     def run(self, o: StableDiffusionProcessing, *args):
         option = Option(*args)
-        processor = ImageProcessor(InferencerRegistry.get(option.image_style))
+        processor = ImageProcessor(registry.get(option.face_detector, option.mask_generator))
 
         if (
             isinstance(o, StableDiffusionProcessingImg2Img)
