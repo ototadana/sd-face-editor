@@ -16,7 +16,7 @@ class Option:
     DEFAULT_USE_MINIMAL_AREA = False
     DEFAULT_IGNORE_LARGER_FACES = True
     DEFAULT_AFFECTED_AREAS = ["Face"]
-    DEFAULT_FACE_DETECTOR = "Retinaface"
+    DEFAULT_FACE_DETECTOR = "RetinaFace"
     DEFAULT_MASK_GENERATOR = "BiSeNet"
 
     def __init__(self, *args) -> None:

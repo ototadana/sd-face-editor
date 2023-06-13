@@ -21,7 +21,7 @@ class LbpcascadeAnimefaceDetector(FaceDetector):
                 raise RuntimeError(f"not found:{self.cascade_file}")
 
     def name(self):
-        return "LbpcascadeAnimeface"
+        return "lbpcascade_animeface"
 
     def detect_faces(self, image: Image, confidence: float) -> List[Rect]:
         cascade = cv2.CascadeClassifier(self.cascade_file)

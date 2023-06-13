@@ -258,3 +258,19 @@ By specifying an **object** as the first argument of args as above, parameters c
 ```
 
 - See [source code](https://github.com/ototadana/sd-face-editor/blob/main/scripts/entities/option.py) for available keywords.
+
+## Experimental Features
+The features described below have been implemented on an experimental basis. Consequently, they may be subject to removal or undergo modifications in future updates. When experimenting with these options, enabling **"Show intermediate steps"** can be beneficial in ensuring that the results align with your expectations.
+
+### Face Detector
+Select a model or algorithm to be used for face detection.
+
+- [RetinaFace](https://github.com/xinntao/facexlib/blob/master/facexlib/detection/__init__.py) : This serves as the default Face Detector.
+- [lbpcascade_animeface](https://github.com/nagadomi/lbpcascade_animeface) :  A face detector designed specifically for anime/manga.
+
+### Mask Generator
+Choose a model or algorithm for generating masks.
+
+- [BiSeNet](https://github.com/xinntao/facexlib/blob/master/facexlib/parsing/__init__.py) : This operates as the default Mask Generator.
+- Ellipse : This option draws an ellipse around the detected face region to generate a mask.
+- Rect : This is a simplistic implementation that uses the detected face region as a direct mask.

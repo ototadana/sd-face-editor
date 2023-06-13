@@ -16,7 +16,7 @@ class RetinafaceDetector(FaceDetector):
         self.detection_model = init_detection_model("retinaface_resnet50", device=shared.device)
 
     def name(self):
-        return "Retinaface"
+        return "RetinaFace"
 
     def detect_faces(self, image: Image, confidence: float) -> List[Rect]:
         with torch.no_grad():
