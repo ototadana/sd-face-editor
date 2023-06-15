@@ -128,7 +128,7 @@ First, image(s) are generated as usual according to prompts and other settings. 
 
 ### Completed
 <details>
-<summary></summary>
+<summary>Show sample image</summary>
 
 ![step-6](./images/step-6.jpg)
 </details>
@@ -161,7 +161,7 @@ For more information, please see: [here](#change-facial-expression).
 Size of the mask area when inpainting to blend the new face with the whole image.
 
 <details>
-<summary></summary>
+<summary>Show sample images</summary>
 
 **size: 0**
 ![mask size 0](./images/mask-00.jpg)
@@ -195,7 +195,7 @@ Specify the size of the margin for face cropping by magnification.
 If other parameters are exactly the same but this value is different, the atmosphere of the new face created will be different.
 
 <details>
-<summary></summary>
+<summary>Show sample images</summary>
 
 ![face margin](./images/face-margin.jpg)
 </details>
@@ -215,7 +215,7 @@ Denoising strength for generating a new face.
 If the value is too small, facial collapse cannot be corrected, but if it is too large, it is difficult to blend with the entire image.
 
 <details>
-<summary></summary>
+<summary>Show sample images</summary>
 
 **strength: 0.4**
 ![strength 0.4](./images/deno-4.jpg)
