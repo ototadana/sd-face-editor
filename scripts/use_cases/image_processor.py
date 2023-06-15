@@ -58,7 +58,10 @@ class ImageProcessor:
             all_prompts.extend(proc.all_prompts)
             infotexts.extend(proc.infotexts)
 
-        res.images.extend(edited_images)
+        if option.show_original_image:
+            res.images.extend(edited_images)
+        else:
+            res.images = edited_images
         res.all_seeds.extend(all_seeds)
         res.all_prompts.extend(all_prompts)
         res.infotexts.extend(infotexts)

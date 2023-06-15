@@ -9,6 +9,7 @@ class Option:
     DEFAULT_PROMPT_FOR_FACE = ""
     DEFAULT_APPLY_INSIDE_MASK_ONLY = True
     DEFAULT_SAVE_ORIGINAL_IMAGE = False
+    DEFAULT_SHOW_ORIGINAL_IMAGE = False
     DEFAULT_SHOW_INTERMEDIATE_STEPS = False
     DEFAULT_APPLY_SCRIPTS_TO_FACES = False
     DEFAULT_FACE_SIZE = 512
@@ -33,6 +34,7 @@ class Option:
         self.use_minimal_area = Option.DEFAULT_USE_MINIMAL_AREA
         self.ignore_larger_faces = Option.DEFAULT_IGNORE_LARGER_FACES
         self.affected_areas = Option.DEFAULT_AFFECTED_AREAS
+        self.show_original_image = Option.DEFAULT_SHOW_ORIGINAL_IMAGE
 
         if len(args) > 0 and isinstance(args[0], dict):
             self.update_by_dict(args[0])
@@ -65,6 +67,7 @@ class Option:
         self.use_minimal_area = args[13] if arg_len > 13 and isinstance(args[13], bool) else self.use_minimal_area
         self.ignore_larger_faces = args[14] if arg_len > 14 and isinstance(args[14], bool) else self.ignore_larger_faces
         self.affected_areas = args[15] if arg_len > 15 and isinstance(args[15], list) else self.affected_areas
+        self.show_original_image = args[16] if arg_len > 16 and isinstance(args[16], bool) else self.show_original_image
 
     def update_by_dict(self, params: dict) -> None:
         self.face_margin = params.get("face_margin", self.face_margin)
@@ -83,6 +86,7 @@ class Option:
         self.use_minimal_area = params.get("use_minimal_area", self.use_minimal_area)
         self.ignore_larger_faces = params.get("ignore_larger_faces", self.ignore_larger_faces)
         self.affected_areas = params.get("affected_areas", self.affected_areas)
+        self.show_original_image = params.get("show_original_image", self.show_original_image)
 
     def to_dict(self) -> dict:
         return {
