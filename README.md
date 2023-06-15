@@ -90,27 +90,48 @@ This script performs the following steps:
 First, image(s) are generated as usual according to prompts and other settings. This script acts as a post-processor for those images.
 
 ### Step 1. Face Detection
-Detects faces on the image.
-![step-1](./images/step-1.jpg)
+<details>
+<summary>Detects faces on the image.</summary>
+
+   ![step-1](./images/step-1.jpg)
+</details>
+
+
 
 ### Step 2. Crop and Resize the Faces
-Crop the detected face image and resize it to 512x512.
+<details>
+<summary>Crop the detected face image and resize it to 512x512.</summary>
+
 ![step-2](./images/step-2.jpg)
+</details>
 
 ### Step 3. Recreate the Faces
-Run **img2img** with the image to create a new face image.
+<details>
+<summary>Run <b>img2img</b> with the image to create a new face image.</summary>
+
 ![step-3](./images/step-3.jpg)
+</details>
 
 ### Step 4. Paste the Faces
-Resize the new face image and paste it at the original image location.
+<details>
+<summary>Resize the new face image and paste it at the original image location.</summary>
+
 ![step-4](./images/step-4.jpg)
+</details>
 
 ### Step 5. Blend the entire image
-To remove the borders generated when pasting the image, mask all but the face and run **inpaint**.
+<details>
+<summary>To remove the borders generated when pasting the image, mask all but the face and run <b>inpaint</b>.</summary>
+
 ![step-5](./images/step-5.jpg)
+</details>
 
 ### Completed
+<details>
+<summary>Show sample image</summary>
+
 ![step-6](./images/step-6.jpg)
+</details>
 
 ## Parameters
 ### Basic Options
@@ -139,6 +160,9 @@ For more information, please see: [here](#change-facial-expression).
 ##### Mask size (0-64)
 Size of the mask area when inpainting to blend the new face with the whole image.
 
+<details>
+<summary>Show sample images</summary>
+
 **size: 0**
 ![mask size 0](./images/mask-00.jpg)
 
@@ -147,6 +171,8 @@ Size of the mask area when inpainting to blend the new face with the whole image
 
 **size: 20**
 ![mask size 20](./images/mask-20.jpg)
+</details>
+
 
 ##### Mask blur (0-64)
 Size of the blur area when inpainting to blend the new face with the whole image.
@@ -168,7 +194,12 @@ Specify the size of the margin for face cropping by magnification.
 
 If other parameters are exactly the same but this value is different, the atmosphere of the new face created will be different.
 
+<details>
+<summary>Show sample images</summary>
+
 ![face margin](./images/face-margin.jpg)
+</details>
+
 
 ##### Size of the face when recreating 
 Specifies one side of the image size when creating a face image. Normally, there should be no need to change this from the default value (512), but you may see interesting changes if you do.
@@ -183,6 +214,9 @@ For more information, please see: [here](https://github.com/ototadana/sd-face-ed
 Denoising strength for generating a new face.
 If the value is too small, facial collapse cannot be corrected, but if it is too large, it is difficult to blend with the entire image.
 
+<details>
+<summary>Show sample images</summary>
+
 **strength: 0.4**
 ![strength 0.4](./images/deno-4.jpg)
 
@@ -191,6 +225,8 @@ If the value is too small, facial collapse cannot be corrected, but if it is too
 
 **strength: 0.8**
 ![strength 0.8](./images/deno-8.jpg)
+</details>
+
 
 #### Step 4. Paste the Faces
 ##### Apply inside mask only
