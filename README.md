@@ -118,11 +118,13 @@ To remove the borders generated when pasting the image, mask all but the face an
 When pasting the generated image to its original location, the rectangle of the detected face area is used. If this option is not enabled, the generated image itself is pasted. In other words, enabling this option applies a smaller face image, while disabling it applies a larger face image.
 
 ##### Save original image
-Specify whether to save the image before modification.
+This option allows you to save the original, unmodified image.
+
+##### Show original image
+This option allows you to display the original, unmodified image.
 
 ##### Show intermediate steps
-Specifies whether to display images of detected faces and masks.
-
+This option enables the display of images that depict detected faces and masks.
 If the generated image is unnatural, enabling it may reveal the cause.
 
 ##### Prompt for face
