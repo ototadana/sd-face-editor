@@ -52,6 +52,10 @@ class ImageProcessor:
             if subseed_index < len(res.all_subseeds):
                 p.subseed = res.all_subseeds[subseed_index]
                 subseed_index += 1
+
+            if type(p.prompt) == list:
+                p.prompt = p.prompt[i]
+
             proc = self.proc_image(p, option, image)
             edited_images.extend(proc.images)
             all_seeds.extend(proc.all_seeds)
@@ -79,9 +83,7 @@ class ImageProcessor:
         p.width, p.height = image.size
         p.sample = sample
 
-    def proc_image(
-        self, p: StableDiffusionProcessingImg2Img, option: Option, pre_proc_image: Image = None
-    ) -> Processed:
+    def proc_image(self, p: StableDiffusionProcessingImg2Img, option: Option, pre_proc_image: Image = None) -> Processed:
         params = option.to_dict()
 
         if hasattr(p.init_images[0], "mode") and p.init_images[0].mode != "RGB":
