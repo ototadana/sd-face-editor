@@ -48,7 +48,7 @@ class FaceEditorExtension(scripts.Script):
             self.__is_running = True
 
             o.do_not_save_samples = False
-            ImageProcessor(registry.get(option.face_detector, option.mask_generator)).proc_images(o, res, option)
+            ImageProcessor(registry.get(option.workflow)).proc_images(o, res, option)
 
         finally:
             self.__is_running = False

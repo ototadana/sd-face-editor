@@ -1,3 +1,9 @@
+import os
+from typing import Dict
+
+from scripts.io.util import workflows_dir
+
+
 class Option:
     DEFAULT_FACE_MARGIN = 1.6
     DEFAULT_CONFIDENCE = 0.97
@@ -16,10 +22,10 @@ class Option:
     DEFAULT_USE_MINIMAL_AREA = False
     DEFAULT_IGNORE_LARGER_FACES = True
     DEFAULT_AFFECTED_AREAS = ["Face"]
-    DEFAULT_FACE_DETECTOR = "RetinaFace"
-    DEFAULT_MASK_GENERATOR = "BiSeNet"
+    DEFAULT_WORKFLOW = open(os.path.join(workflows_dir, "default.json")).read()
 
     def __init__(self, *args) -> None:
+        self.extra_options: Dict[str, Dict[str, str]] = {}
         self.face_margin = Option.DEFAULT_FACE_MARGIN
         self.confidence = Option.DEFAULT_CONFIDENCE
         self.strength1 = Option.DEFAULT_STRENGTH1
@@ -37,8 +43,7 @@ class Option:
         self.ignore_larger_faces = Option.DEFAULT_IGNORE_LARGER_FACES
         self.affected_areas = Option.DEFAULT_AFFECTED_AREAS
         self.show_original_image = Option.DEFAULT_SHOW_ORIGINAL_IMAGE
-        self.face_detector = Option.DEFAULT_FACE_DETECTOR
-        self.mask_generator = Option.DEFAULT_MASK_GENERATOR
+        self.workflow = Option.DEFAULT_WORKFLOW
 
         if len(args) > 0 and isinstance(args[0], dict):
             self.update_by_dict(args[0])
@@ -72,8 +77,7 @@ class Option:
         self.ignore_larger_faces = args[14] if arg_len > 14 and isinstance(args[14], bool) else self.ignore_larger_faces
         self.affected_areas = args[15] if arg_len > 15 and isinstance(args[15], list) else self.affected_areas
         self.show_original_image = args[16] if arg_len > 16 and isinstance(args[16], bool) else self.show_original_image
-        self.face_detector = args[17] if arg_len > 17 and isinstance(args[17], str) else self.face_detector
-        self.mask_generator = args[18] if arg_len > 18 and isinstance(args[18], str) else self.mask_generator
+        self.workflow = args[17] if arg_len > 17 and isinstance(args[17], str) else self.workflow
 
     def update_by_dict(self, params: dict) -> None:
         self.face_margin = params.get("face_margin", self.face_margin)
@@ -93,11 +97,14 @@ class Option:
         self.ignore_larger_faces = params.get("ignore_larger_faces", self.ignore_larger_faces)
         self.affected_areas = params.get("affected_areas", self.affected_areas)
         self.show_original_image = params.get("show_original_image", self.show_original_image)
-        self.face_detector = params.get("face_detector", self.face_detector)
-        self.mask_generator = params.get("mask_generator", self.mask_generator)
+        self.workflow = params.get("workflow", self.workflow)
+
+        for k, v in params.items():
+            if isinstance(v, dict):
+                self.extra_options[k] = v
 
     def to_dict(self) -> dict:
-        return {
+        d = {
             Option.add_prefix("enabled"): True,
             Option.add_prefix("face_margin"): self.face_margin,
             Option.add_prefix("confidence"): self.confidence,
@@ -113,9 +120,18 @@ class Option:
             Option.add_prefix("use_minimal_area"): self.use_minimal_area,
             Option.add_prefix("ignore_larger_faces"): self.ignore_larger_faces,
             Option.add_prefix("affected_areas"): str.join(";", self.affected_areas),
-            Option.add_prefix("face_detector"): self.face_detector,
-            Option.add_prefix("mask_generator"): self.mask_generator,
+            Option.add_prefix("workflow"): self.workflow,
         }
+
+        for option_group_name, options in self.extra_options.items():
+            prefix = Option.add_prefix(option_group_name)
+            for k, v in options.items():
+                d[f"{prefix}_{k}"] = v
+
+        return d
+
+    def add_options(self, option_group_name: str, options: Dict[str, str]):
+        self.extra_options[option_group_name] = options
 
     @staticmethod
     def add_prefix(text: str) -> str:

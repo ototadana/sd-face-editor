@@ -1,8 +1,10 @@
 import importlib.util
 import inspect
+import json
 import os
 from typing import Dict, List, Type
 
+from scripts.entities.definitions.workflow import Workflow
 from scripts.use_cases.face_detector import FaceDetector
 from scripts.use_cases.inferencer_set import InferencerSet
 from scripts.use_cases.mask_generator import MaskGenerator
@@ -52,5 +54,8 @@ face_detector_names = list(face_detectors.keys())
 mask_generator_names = list(mask_generators.keys())
 
 
-def get(face_detector_name: str, mask_generator_name: str) -> InferencerSet:
-    return InferencerSet(face_detectors[face_detector_name], mask_generators[mask_generator_name])
+def get(workflow: str) -> InferencerSet:
+    wf = Workflow().from_dict(json.loads(workflow))
+    fd = wf.face_detector
+    mg = wf.conditions[0].jobs[0].mask_generator
+    return InferencerSet(face_detectors[fd.name], fd.params, mask_generators[mg.name], mg.params)

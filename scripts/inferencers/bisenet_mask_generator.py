@@ -22,10 +22,11 @@ class BiSeNetMaskGenerator(MaskGenerator):
     def generate_mask(
         self,
         face_image: np.ndarray,
-        mask_size: int,
-        affected_areas: List[str],
-        use_minimal_area: bool,
         face_area_on_image: Tuple[int, int, int, int],
+        affected_areas: List[str],
+        mask_size: int,
+        use_minimal_area: bool,
+        **kwargs,
     ) -> np.ndarray:
         face_image = face_image.copy()
 

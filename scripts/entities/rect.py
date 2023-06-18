@@ -4,7 +4,8 @@ import numpy as np
 
 
 class Rect:
-    def __init__(self, left: int, top: int, right: int, bottom: int) -> None:
+    def __init__(self, left: int, top: int, right: int, bottom: int, tag: str = "Face") -> None:
+        self.tag = tag
         self.left = left
         self.top = top
         self.right = right
@@ -12,9 +13,9 @@ class Rect:
         self.center = right - int((right - left) / 2)
 
     @classmethod
-    def from_ndarray(cls, face_box: np.ndarray) -> "Rect":
+    def from_ndarray(cls, face_box: np.ndarray, tag: str = "Face") -> "Rect":
         left, top, right, bottom, *_ = list(map(int, face_box))
-        return cls(left, top, right, bottom)
+        return cls(left, top, right, bottom, tag)
 
     def to_tuple(self) -> Tuple[int, int, int, int]:
         return self.left, self.top, self.right, self.bottom

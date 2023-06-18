@@ -1,8 +1,8 @@
 import gradio as gr
 
-import scripts.inferencers.registry as registry
 from scripts.entities.option import Option
 from scripts.ui.param_value_parser import ParamValueParser
+from scripts.ui.workflow import build_workflow_ui
 
 
 class UiBuilder:
@@ -130,21 +130,9 @@ class UiBuilder:
                 )
                 self.infotext_fields.append((strength2, Option.add_prefix("strength2")))
 
-        with gr.Accordion("Experimental Features", open=False):
-            with gr.Row():
-                face_detector = gr.Dropdown(
-                    choices=registry.face_detector_names,
-                    label="Face Detector",
-                    value=Option.DEFAULT_FACE_DETECTOR,
-                )
-                self.infotext_fields.append((face_detector, Option.add_prefix("face_detector")))
-
-                mask_generator = gr.Dropdown(
-                    choices=registry.mask_generator_names,
-                    label="Mask Generator",
-                    value=Option.DEFAULT_MASK_GENERATOR,
-                )
-                self.infotext_fields.append((mask_generator, Option.add_prefix("mask_generator")))
+        with gr.Accordion("Workflow", open=False):
+            workflow = build_workflow_ui()
+            self.infotext_fields.append((workflow, Option.add_prefix("workflow")))
 
         return [
             face_margin,
@@ -164,6 +152,5 @@ class UiBuilder:
             ignore_larger_faces,
             affected_areas,
             show_original_image,
-            face_detector,
-            mask_generator,
+            workflow,
         ]

@@ -28,7 +28,9 @@ os.makedirs(os.path.join(tempfile.gettempdir(), "gradio"), exist_ok=True)
 class ImageProcessor:
     def __init__(self, inferencers: InferencerSet) -> None:
         self.face_detector = inferencers.face_detector
+        self.face_detector_params = inferencers.face_detector_params
         self.mask_generator = inferencers.mask_generator
+        self.mask_generator_params = inferencers.mask_generator_params
 
     def proc_images(self, o: StableDiffusionProcessing, res: Processed, option: Option):
         edited_images, all_seeds, all_prompts, infotexts = [], [], [], []
@@ -83,7 +85,9 @@ class ImageProcessor:
         p.width, p.height = image.size
         p.sample = sample
 
-    def proc_image(self, p: StableDiffusionProcessingImg2Img, option: Option, pre_proc_image: Image = None) -> Processed:
+    def proc_image(
+        self, p: StableDiffusionProcessingImg2Img, option: Option, pre_proc_image: Image = None
+    ) -> Processed:
         params = option.to_dict()
 
         if hasattr(p.init_images[0], "mode") and p.init_images[0].mode != "RGB":
@@ -143,12 +147,11 @@ class ImageProcessor:
                 proc.images[0] = proc.images[0].convert("RGB")
 
             face_image = np.array(proc.images[0])
+            self.mask_generator_params["mask_size"] = option.mask_size
+            self.mask_generator_params["use_minimal_area"] = option.use_minimal_area
+            self.mask_generator_params["affected_areas"] = option.affected_areas
             mask_image = self.mask_generator.generate_mask(
-                face_image,
-                option.mask_size,
-                option.affected_areas,
-                option.use_minimal_area,
-                face.face_area_on_image,
+                face_image, face.face_area_on_image, **self.mask_generator_params
             )
 
             if option.mask_blur > 0:
@@ -321,7 +324,8 @@ class ImageProcessor:
     def __crop_face(
         self, image: Image, face_margin: float, confidence: float, face_size: int, ignore_larger_faces: bool
     ) -> List[Face]:
-        face_areas = self.face_detector.detect_faces(image, confidence)
+        self.face_detector_params["confidence"] = confidence
+        face_areas = self.face_detector.detect_faces(image, **self.face_detector_params)
         return self.__crop(image, face_areas, face_margin, face_size, ignore_larger_faces)
 
     def __crop(

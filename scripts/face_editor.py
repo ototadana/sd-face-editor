@@ -23,7 +23,7 @@ class Script(scripts.Script):
 
     def run(self, o: StableDiffusionProcessing, *args):
         option = Option(*args)
-        processor = ImageProcessor(registry.get(option.face_detector, option.mask_generator))
+        processor = ImageProcessor(registry.get(option.workflow))
 
         if (
             isinstance(o, StableDiffusionProcessingImg2Img)

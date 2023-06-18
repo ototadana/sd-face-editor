@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import Tuple
 
 import numpy as np
 
@@ -12,10 +12,8 @@ class FaceAreaMaskGenerator(MaskGenerator):
     def generate_mask(
         self,
         face_image: np.ndarray,
-        mask_size: int,
-        affected_areas: List[str],
-        use_minimal_area: bool,
         face_area_on_image: Tuple[int, int, int, int],
+        **kwargs,
     ) -> np.ndarray:
         height, width = face_image.shape[:2]
         img = np.ones((height, width, 3), np.uint8) * 255

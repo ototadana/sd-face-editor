@@ -1,0 +1,24 @@
+{
+    "name": "Default",
+    "face_detector": {
+        "name": "RetinaFace"
+    },
+    "conditions": [
+        {
+            "tag": "Any",
+            "criteria": "All",
+            "num": 9999,
+            "jobs": [
+                {
+                    "name": "img2img",
+                    "face_processor": {
+                        "name": "Default"
+                    },
+                    "mask_generator": {
+                        "name": "BiSeNet"
+                    }
+                }
+            ]
+        }
+    ]
+}

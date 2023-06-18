@@ -14,10 +14,9 @@ class EllipseMaskGenerator(MaskGenerator):
     def generate_mask(
         self,
         face_image: np.ndarray,
-        mask_size: int,
-        affected_areas: List[str],
-        use_minimal_area: bool,
         face_area_on_image: Tuple[int, int, int, int],
+        use_minimal_area: bool,
+        **kwargs,
     ) -> np.ndarray:
         if use_minimal_area:
             face_image = FaceAreaMaskGenerator.mask_non_face_areas(face_image, face_area_on_image)
@@ -40,5 +39,4 @@ class EllipseMaskGenerator(MaskGenerator):
         a_height = int(height * factor)
         left = left - int((a_width - width) / 2)
         top = top - int((a_height - height) / 2)
-        print(left, top, a_width, a_height)
         return [left, top, a_width, a_height]

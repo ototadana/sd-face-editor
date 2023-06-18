@@ -12,5 +12,5 @@ class FaceDetector(ABC):
         pass
 
     @abstractmethod
-    def detect_faces(self, image: Image, confidence: float) -> List[Rect]:
+    def detect_faces(self, image: Image, **kwargs) -> List[Rect]:
         pass
