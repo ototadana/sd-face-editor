@@ -1,7 +1,10 @@
 {
     "name": "Default",
     "face_detector": {
-        "name": "RetinaFace"
+        "name": "lbpcascade_animeface",
+        "params": {
+            "min_neighbors": 5
+        }
     },
     "conditions": [
         {

@@ -14,3 +14,4 @@ def get_path(name: str) -> str:
 
 workflows_dir = os.path.join(get_path("workflows"))
 assets_dir = os.path.join(get_path("assets"))
+scripts_dir = os.path.join(get_path("scripts"))

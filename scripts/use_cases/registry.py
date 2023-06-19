@@ -1,15 +1,14 @@
 import importlib.util
 import inspect
-import json
 import os
 from typing import Dict, List, Type
 
-from scripts.entities.definitions.workflow import Workflow
+from scripts.io.util import scripts_dir
 from scripts.use_cases.face_detector import FaceDetector
-from scripts.use_cases.inferencer_set import InferencerSet
+from scripts.use_cases.face_processor import FaceProcessor
 from scripts.use_cases.mask_generator import MaskGenerator
 
-current_directory = os.path.dirname(os.path.realpath(__file__))
+inferencers_directory = os.path.join(scripts_dir, "inferencers")
 
 
 def load_classes_from_file(file_path: str, base_class: Type) -> List[Type]:
@@ -39,23 +38,23 @@ def load_classes_from_directory(directory_path: str, base_class: Type) -> List[T
 
 
 def load_face_detector() -> Dict[str, FaceDetector]:
-    all_classes = load_classes_from_directory(current_directory, FaceDetector)
+    all_classes = load_classes_from_directory(inferencers_directory, FaceDetector)
+    return {c.name(): c for cls in all_classes for c in [cls()]}
+
+
+def load_face_processor() -> Dict[str, FaceProcessor]:
+    all_classes = load_classes_from_directory(inferencers_directory, FaceProcessor)
     return {c.name(): c for cls in all_classes for c in [cls()]}
 
 
 def load_mask_generator() -> Dict[str, MaskGenerator]:
-    all_classes = load_classes_from_directory(current_directory, MaskGenerator)
+    all_classes = load_classes_from_directory(inferencers_directory, MaskGenerator)
     return {c.name(): c for cls in all_classes for c in [cls()]}
 
 
 face_detectors = load_face_detector()
+face_processors = load_face_processor()
 mask_generators = load_mask_generator()
 face_detector_names = list(face_detectors.keys())
+face_processor_names = list(face_processors.keys())
 mask_generator_names = list(mask_generators.keys())
-
-
-def get(workflow: str) -> InferencerSet:
-    wf = Workflow().from_dict(json.loads(workflow))
-    fd = wf.face_detector
-    mg = wf.conditions[0].jobs[0].mask_generator
-    return InferencerSet(face_detectors[fd.name], fd.params, mask_generators[mg.name], mg.params)

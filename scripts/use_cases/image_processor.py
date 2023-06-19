@@ -20,17 +20,14 @@ from PIL import Image
 from scripts.entities.face import Face
 from scripts.entities.option import Option
 from scripts.entities.rect import Rect
-from scripts.use_cases.inferencer_set import InferencerSet
+from scripts.use_cases.workflow_manager import WorkflowManager
 
 os.makedirs(os.path.join(tempfile.gettempdir(), "gradio"), exist_ok=True)
 
 
 class ImageProcessor:
-    def __init__(self, inferencers: InferencerSet) -> None:
-        self.face_detector = inferencers.face_detector
-        self.face_detector_params = inferencers.face_detector_params
-        self.mask_generator = inferencers.mask_generator
-        self.mask_generator_params = inferencers.mask_generator_params
+    def __init__(self, workflow: WorkflowManager) -> None:
+        self.workflow = workflow
 
     def proc_images(self, o: StableDiffusionProcessing, res: Processed, option: Option):
         edited_images, all_seeds, all_prompts, infotexts = [], [], [], []
@@ -94,9 +91,7 @@ class ImageProcessor:
             p.init_images[0] = p.init_images[0].convert("RGB")
 
         entire_image = np.array(p.init_images[0])
-        faces = self.__crop_face(
-            p.init_images[0], option.face_margin, option.confidence, option.face_size, option.ignore_larger_faces
-        )
+        faces = self.__crop_face(p.init_images[0], option)
         faces = faces[: option.max_face_count]
         faces = sorted(faces, key=attrgetter("center"))
         entire_mask_image = np.zeros_like(entire_image)
@@ -120,42 +115,28 @@ class ImageProcessor:
 
         wildcards_script = self.__get_wildcards_script(p)
         face_prompts = self.__get_face_prompts(len(faces), option.prompt_for_face, entire_prompt)
-        face_prompt_index = 0
 
         if not option.apply_scripts_to_faces:
             p.scripts = None
 
-        for face in faces:
+        for i, face in enumerate(faces):
             if shared.state.interrupted:
                 break
 
-            p.init_images = [face.image]
-            p.width = face.image.width
-            p.height = face.image.height
-            p.denoising_strength = option.strength1
-            p.prompt = face_prompts[face_prompt_index]
+            p.prompt = face_prompts[i]
             if wildcards_script is not None:
-                p.prompt = self.__apply_wildcards(wildcards_script, p.prompt, face_prompt_index)
-            face_prompt_index += 1
+                p.prompt = self.__apply_wildcards(wildcards_script, p.prompt, i)
             print(f"prompt for the face: {p.prompt}")
 
-            p.do_not_save_samples = True
+            jobs = self.workflow.select_jobs(faces, i)
+            assert len(jobs) > 0
 
-            proc = process_images(p)
+            proc_image = self.workflow.process(jobs, face, p, option)
+            if proc_image.mode != "RGB":
+                proc_image = proc_image.convert("RGB")
 
-            if proc.images[0].mode != "RGB":
-                proc.images[0] = proc.images[0].convert("RGB")
-
-            face_image = np.array(proc.images[0])
-            self.mask_generator_params["mask_size"] = option.mask_size
-            self.mask_generator_params["use_minimal_area"] = option.use_minimal_area
-            self.mask_generator_params["affected_areas"] = option.affected_areas
-            mask_image = self.mask_generator.generate_mask(
-                face_image, face.face_area_on_image, **self.mask_generator_params
-            )
-
-            if option.mask_blur > 0:
-                mask_image = cv2.blur(mask_image, (option.mask_blur, option.mask_blur))
+            face_image = np.array(proc_image)
+            mask_image = self.workflow.generate_mask(jobs, face_image, face.face_area_on_image, option)
 
             if option.show_intermediate_steps:
                 feature = self.__get_feature(p.prompt, entire_prompt)
@@ -321,12 +302,9 @@ class ImageProcessor:
         gray_mask = np.where(mask_image == 0, 47, 255) / 255.0
         return (image * gray_mask).astype("uint8")
 
-    def __crop_face(
-        self, image: Image, face_margin: float, confidence: float, face_size: int, ignore_larger_faces: bool
-    ) -> List[Face]:
-        self.face_detector_params["confidence"] = confidence
-        face_areas = self.face_detector.detect_faces(image, **self.face_detector_params)
-        return self.__crop(image, face_areas, face_margin, face_size, ignore_larger_faces)
+    def __crop_face(self, image: Image, option: Option) -> List[Face]:
+        face_areas = self.workflow.detect_faces(image, option)
+        return self.__crop(image, face_areas, option.face_margin, option.face_size, option.ignore_larger_faces)
 
     def __crop(
         self, image: Image, face_areas: List[Rect], face_margin: float, face_size: int, ignore_larger_faces: bool

@@ -50,12 +50,13 @@ def build_workflow_ui():
                 choices=get_files(),
                 label="Choose a Workflow",
                 value="default",
-                scale=3,
+                scale=2,
                 multiselect=False,
                 show_label=False,
             )
             refresh_button = gr.Button(value="Refresh", scale=1, size="sm")
-            filename_input = gr.Textbox(scale=3, show_label=False, placeholder="Save as")
+        with gr.Row():
+            filename_input = gr.Textbox(scale=2, show_label=False, placeholder="Save as")
             save_button = gr.Button(value="Save", scale=1, size="sm")
 
         workflow_editor = gr.Code(language="json", label="Workflow", value=load_workflow("default"))

@@ -2,10 +2,10 @@ import modules.scripts as scripts
 import modules.shared as shared
 from modules.processing import StableDiffusionProcessing, StableDiffusionProcessingImg2Img, process_images
 
-import scripts.inferencers.registry as registry
 from scripts.entities.option import Option
 from scripts.ui.ui_builder import UiBuilder
 from scripts.use_cases.image_processor import ImageProcessor
+from scripts.use_cases.workflow_manager import WorkflowManager
 
 
 class Script(scripts.Script):
@@ -23,7 +23,7 @@ class Script(scripts.Script):
 
     def run(self, o: StableDiffusionProcessing, *args):
         option = Option(*args)
-        processor = ImageProcessor(registry.get(option.workflow))
+        processor = ImageProcessor(WorkflowManager.get(option.workflow))
 
         if (
             isinstance(o, StableDiffusionProcessingImg2Img)

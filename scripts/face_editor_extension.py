@@ -1,9 +1,9 @@
 import modules.scripts as scripts
 
-import scripts.inferencers.registry as registry
 from scripts.entities.option import Option
 from scripts.ui.ui_builder import UiBuilder
 from scripts.use_cases.image_processor import ImageProcessor
+from scripts.use_cases.workflow_manager import WorkflowManager
 
 
 class FaceEditorExtension(scripts.Script):
@@ -48,7 +48,7 @@ class FaceEditorExtension(scripts.Script):
             self.__is_running = True
 
             o.do_not_save_samples = False
-            ImageProcessor(registry.get(option.workflow)).proc_images(o, res, option)
+            ImageProcessor(WorkflowManager.get(option.workflow)).proc_images(o, res, option)
 
         finally:
             self.__is_running = False
