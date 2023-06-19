@@ -131,7 +131,7 @@ class UiBuilder:
 
             with gr.Accordion("(6) Script Execution Order", open=False):
                 script_index = gr.Slider(
-                    label="Script Execution Position Index",
+                    label="Script Execution Position Index(0 is the first script, -1 is the last script to execute, etc.)",
                     minimum=-10,
                     maximum=10,
                     step=1,

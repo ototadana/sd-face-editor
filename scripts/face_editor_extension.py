@@ -32,7 +32,10 @@ class FaceEditorExtension(scripts.Script):
 
         if p.scripts is None and not hasattr(p.scripts, "alwayson_scripts"):
             return
-                
+        
+        if option.script_index >= len(p.scripts.alwayson_scripts) or option.script_index < -len(p.scripts.alwayson_scripts):
+            return
+        
         if p.scripts.alwayson_scripts[option.script_index] == self:
             return
         
