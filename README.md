@@ -135,6 +135,9 @@ First, image(s) are generated as usual according to prompts and other settings. 
 
 ## Parameters
 ### Basic Options
+##### Workflow
+Select a workflow. For more detailed information, please refer to the [Workflow Editor](#workflow-editor) section.
+
 ##### Use minimal area (for close faces)
 When pasting the generated image to its original location, the rectangle of the detected face area is used. If this option is not enabled, the generated image itself is pasted. In other words, enabling this option applies a smaller face image, while disabling it applies a larger face image.
 
@@ -153,8 +156,6 @@ Prompt for generating a new face.
 If this parameter is not specified, the prompt entered at the top of the screen is used.
 
 For more information, please see: [here](#change-facial-expression).
-
-
 
 
 ##### Mask size (0-64)
@@ -240,6 +241,50 @@ Denoising strength when inpainting to blend the new face with the whole image.
 If the border lines are too prominent, increase this value.
 
 
+## Workflow Editor
+Workflow Editor is where you can customize and experiment with various options beyond just the standard settings. 
+
+- The editor allows you to select from a variety of implementations, each offering unique behaviors compared to the default settings.
+- It provides a platform for freely combining these implementations, enabling you to optimize the workflow according to your needs.
+- Within this workflow, you will define a combination of three components: the "Face Detector" for identifying faces within an image, the "Face Processor" for adjusting the detected faces, and the "Mask Generator" for integrating the processed faces back into the original image.
+- As you experiment with different settings, ensure to activate the "Show intermediate steps" option. This allows you to understand precisely the impact of each modification.
+
+### Workflow Components (Inferencers)
+Let's delve into the concept of "Workflow Components", or "inferencers" as they are referred to in the software implementation. These constitute the building blocks of your custom workflow, with a selection available for use. Some are tried and tested, while others offer a more experimental approach—feel free to explore and determine what best fits your requirements. As development continues and new components are added, the range of choices will naturally expand. Furthermore, if you are inclined towards customization, there's the opportunity to create your own component.
+
+#### Face Detector
+Select a model or algorithm to be used for face detection.
+
+- [RetinaFace](https://github.com/xinntao/facexlib/blob/master/facexlib/detection/__init__.py) : This serves as the default Face Detector.
+- [lbpcascade_animeface](https://github.com/nagadomi/lbpcascade_animeface) :  A face detector designed specifically for anime/manga.
+
+#### Face Processor
+- img2img: This is the default implementation that enhances enlarged face images using img2img.
+
+#### Mask Generator
+Choose a model or algorithm for generating masks.
+
+- [BiSeNet](https://github.com/xinntao/facexlib/blob/master/facexlib/parsing/__init__.py) : This operates as the default Mask Generator.
+- Ellipse : This option draws an ellipse around the detected face region to generate a mask.
+- Rect : This is a simplistic implementation that uses the detected face region as a direct mask.
+
+### Workflow JSON Reference
+
+- `name` (string): The name of the workflow definition.
+- `face_detector` (object): The face detector component to be used in the workflow.
+  - `name` (string): The name of the face detector implementation.
+- `conditions` (array): A list of conditions. Each condition is an object that consists of a tag, criteria, num, and jobs.
+  - `tag` (string): A tag corresponding to the type of face detected by the Face Detector. If the detected face's tag matches this tag, the jobs under this condition might be executed.
+  - `criteria` (string): This determines which faces will be processed, based on position or size. Available options include 'Left', 'Right', 'Center', 'Top', 'Middle', 'Bottom', 'Small', 'Large', and 'All'. For a job to be executed, both the detected face's tag and these criteria need to match.
+  - `num` (integer): The maximum number of faces to be processed that match the specified tag and criteria. For example, if `criteria` is 'left' and `num` is 2, then the two leftmost faces matching the tag will be processed.
+  - `jobs` (array): The list of jobs to be executed if the condition's tag and criteria are met. Each job is an object with the following properties:
+    - `name` (string): The name of the job.
+    - `face_processor` (object): The face processor component to be used in the job.
+      - `name` (string): The name of the face processor implementation.
+    - `mask_generator` (object): The mask generator component to be used in the job.
+      - `name` (string): The name of the mask generator implementation.
+
+
 ## API
 If you want to use this script as an extension (alwayson_scripts) in the [API](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/API), specify **"face editor ex"** as the script name as follows:
 
@@ -258,19 +303,3 @@ By specifying an **object** as the first argument of args as above, parameters c
 ```
 
 - See [source code](https://github.com/ototadana/sd-face-editor/blob/main/scripts/entities/option.py) for available keywords.
-
-## Experimental Features
-The features described below have been implemented on an experimental basis. Consequently, they may be subject to removal or undergo modifications in future updates. When experimenting with these options, enabling **"Show intermediate steps"** can be beneficial in ensuring that the results align with your expectations.
-
-### Face Detector
-Select a model or algorithm to be used for face detection.
-
-- [RetinaFace](https://github.com/xinntao/facexlib/blob/master/facexlib/detection/__init__.py) : This serves as the default Face Detector.
-- [lbpcascade_animeface](https://github.com/nagadomi/lbpcascade_animeface) :  A face detector designed specifically for anime/manga.
-
-### Mask Generator
-Choose a model or algorithm for generating masks.
-
-- [BiSeNet](https://github.com/xinntao/facexlib/blob/master/facexlib/parsing/__init__.py) : This operates as the default Mask Generator.
-- Ellipse : This option draws an ellipse around the detected face region to generate a mask.
-- Rect : This is a simplistic implementation that uses the detected face region as a direct mask.

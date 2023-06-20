@@ -1,8 +1,8 @@
 import gradio as gr
 
 from scripts.entities.option import Option
+from scripts.ui import workflow as workflow_ui
 from scripts.ui.param_value_parser import ParamValueParser
-from scripts.ui.workflow import build_workflow_ui
 
 
 class UiBuilder:
@@ -13,23 +13,28 @@ class UiBuilder:
     def build(self, is_img2img: bool):
         if self.__for_extension:
             with gr.Accordion("Face Editor", open=False, elem_id="sd-face-editor-extension"):
-                enabled = gr.Checkbox(label="Enabled", value=False)
-                components = [enabled] + self.__build(is_img2img)
+                with gr.Row():
+                    enabled = gr.Checkbox(label="Enabled", value=False)
+                    workflow_selector = self.__create_workflow_selector()
+                components = [enabled] + self.__build(workflow_selector)
                 self.infotext_fields.append((enabled, Option.add_prefix("enabled")))
                 return components
         else:
-            return self.__build(is_img2img)
+            return self.__build(self.__create_workflow_selector())
 
-    def __build(self, is_img2img: bool):
+    def __create_workflow_selector(self) -> gr.Dropdown:
+        return gr.Dropdown(choices=workflow_ui.get_files(), label="Workflow", value="default", show_label=True)
+
+    def __build(self, workflow_selector: gr.Dropdown):
         use_minimal_area = gr.Checkbox(
             label="Use minimal area (for close faces)", value=Option.DEFAULT_USE_MINIMAL_AREA
         )
         self.infotext_fields.append((use_minimal_area, Option.add_prefix("use_minimal_area")))
 
-        with gr.Row():
-            save_original_image = gr.Checkbox(label="Save original image", value=Option.DEFAULT_SAVE_ORIGINAL_IMAGE)
-            self.infotext_fields.append((save_original_image, Option.add_prefix("save_original_image")))
+        save_original_image = gr.Checkbox(label="Save original image", value=Option.DEFAULT_SAVE_ORIGINAL_IMAGE)
+        self.infotext_fields.append((save_original_image, Option.add_prefix("save_original_image")))
 
+        with gr.Row():
             show_original_image = gr.Checkbox(label="Show original image", value=Option.DEFAULT_SHOW_ORIGINAL_IMAGE)
             self.infotext_fields.append((show_original_image, Option.add_prefix("show_original_image")))
 
@@ -130,8 +135,8 @@ class UiBuilder:
                 )
                 self.infotext_fields.append((strength2, Option.add_prefix("strength2")))
 
-        with gr.Accordion("Workflow", open=False):
-            workflow = build_workflow_ui()
+        with gr.Accordion("Workflow Editor", open=False):
+            workflow = workflow_ui.build(workflow_selector)
             self.infotext_fields.append((workflow, Option.add_prefix("workflow")))
 
         return [

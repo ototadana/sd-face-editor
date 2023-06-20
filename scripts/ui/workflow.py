@@ -21,6 +21,10 @@ def get_filename(file: str) -> str:
     return file
 
 
+def sync_selection(file: str) -> str:
+    return file
+
+
 def save_workflow(name: str, workflow: str) -> str:
     with open(os.path.join(workflows_dir, name + ".json"), "w") as file:
         file.write(workflow)
@@ -43,7 +47,7 @@ def check_json(workflow: str) -> str:
         return f"Error in JSON: {str(e)}"
 
 
-def build_workflow_ui():
+def build(workflow_selector: gr.Dropdown):
     with gr.Blocks(title="Workflow"):
         with gr.Row():
             filename_dropdown = gr.Dropdown(
@@ -51,7 +55,6 @@ def build_workflow_ui():
                 label="Choose a Workflow",
                 value="default",
                 scale=2,
-                multiselect=False,
                 show_label=False,
             )
             refresh_button = gr.Button(value="Refresh", scale=1, size="sm")
@@ -64,8 +67,16 @@ def build_workflow_ui():
 
         filename_dropdown.input(load_workflow, inputs=[filename_dropdown], outputs=[workflow_editor])
         filename_dropdown.input(get_filename, inputs=[filename_dropdown], outputs=[filename_input])
+        filename_dropdown.input(sync_selection, inputs=[filename_dropdown], outputs=[workflow_selector])
+
+        workflow_selector.input(load_workflow, inputs=[workflow_selector], outputs=[workflow_editor])
+        workflow_selector.input(get_filename, inputs=[workflow_selector], outputs=[filename_input])
+        workflow_selector.input(sync_selection, inputs=[workflow_selector], outputs=[filename_dropdown])
+
         workflow_editor.change(check_json, inputs=[workflow_editor], outputs=[json_status])
         save_button.click(save_workflow, inputs=[filename_input, workflow_editor])
-        refresh_button.click(refresh_files, outputs=filename_dropdown)
+
+        refresh_button.click(refresh_files, outputs=[filename_dropdown])
+        refresh_button.click(refresh_files, outputs=[workflow_selector])
 
         return workflow_editor
