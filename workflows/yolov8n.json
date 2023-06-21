@@ -1,9 +1,9 @@
 {
-    "name": "Default",
+    "name": "YOLO",
     "face_detector": {
-        "name": "lbpcascade_animeface",
+        "name": "YOLO",
         "params": {
-            "min_neighbors": 5
+          "path": "yolov8n.pt"
         }
     },
     "conditions": [
@@ -18,7 +18,7 @@
                         "name": "img2img"
                     },
                     "mask_generator": {
-                        "name": "BiSeNet"
+                        "name": "Rect"
                     }
                 }
             ]

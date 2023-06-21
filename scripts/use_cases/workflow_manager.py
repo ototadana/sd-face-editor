@@ -38,7 +38,7 @@ class WorkflowManager:
     def select_jobs(self, faces: List[Face], index: int) -> List[Job]:
         jobs = []
         for condition in self.workflow.conditions:
-            if condition.tag != "Any" and condition.tag != faces[index].face_area.tag:
+            if condition.tag != "Any" and condition.tag.lower() != faces[index].face_area.tag.lower():
                 continue
             # TODO: select by condition.criteria
             jobs.extend(condition.jobs)

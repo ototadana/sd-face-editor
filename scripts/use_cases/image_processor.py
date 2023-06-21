@@ -126,10 +126,11 @@ class ImageProcessor:
             p.prompt = face_prompts[i]
             if wildcards_script is not None:
                 p.prompt = self.__apply_wildcards(wildcards_script, p.prompt, i)
-            print(f"prompt for the face: {p.prompt}")
 
             jobs = self.workflow.select_jobs(faces, i)
-            assert len(jobs) > 0
+
+            if len(jobs) == 0:
+                continue
 
             proc_image = self.workflow.process(jobs, face, p, option)
             if proc_image.mode != "RGB":

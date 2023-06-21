@@ -9,12 +9,27 @@ class Img2ImgFaceProcessor(FaceProcessor):
     def name(self) -> str:
         return "img2img"
 
-    def process(self, face: Face, p: StableDiffusionProcessingImg2Img, strength1: float | int, **kwargs) -> Image:
+    def process(
+        self,
+        face: Face,
+        p: StableDiffusionProcessingImg2Img,
+        strength1: float | int,
+        pp: str = "",
+        np: str = "",
+        **kwargs,
+    ) -> Image:
         p.init_images = [face.image]
         p.width = face.image.width
         p.height = face.image.height
         p.denoising_strength = strength1
         p.do_not_save_samples = True
+
+        if len(pp) > 0:
+            p.prompt = pp
+        if len(np) > 0:
+            p.negative_prompt = np
+
+        print(f"prompt for the face: {p.prompt}")
 
         proc = process_images(p)
         return proc.images[0]

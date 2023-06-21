@@ -273,6 +273,7 @@ Choose a model or algorithm for generating masks.
 - `name` (string): The name of the workflow definition.
 - `face_detector` (object): The face detector component to be used in the workflow.
   - `name` (string): The name of the face detector implementation.
+  - `params` (object): Component-specific parameters, represented as key-value pairs.
 - `conditions` (array): A list of conditions. Each condition is an object that consists of a tag, criteria, num, and jobs.
   - `tag` (string): A tag corresponding to the type of face detected by the Face Detector. If the detected face's tag matches this tag, the jobs under this condition might be executed.
   - `criteria` (string): This determines which faces will be processed, based on position or size. Available options include 'Left', 'Right', 'Center', 'Top', 'Middle', 'Bottom', 'Small', 'Large', and 'All'. For a job to be executed, both the detected face's tag and these criteria need to match.
@@ -281,8 +282,10 @@ Choose a model or algorithm for generating masks.
     - `name` (string): The name of the job.
     - `face_processor` (object): The face processor component to be used in the job.
       - `name` (string): The name of the face processor implementation.
+      - `params` (object): Component-specific parameters, represented as key-value pairs.
     - `mask_generator` (object): The mask generator component to be used in the job.
       - `name` (string): The name of the mask generator implementation.
+      - `params` (object): Component-specific parameters, represented as key-value pairs.
 
 
 ## API
