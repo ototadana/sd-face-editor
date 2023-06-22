@@ -127,7 +127,7 @@ class ImageProcessor:
             if wildcards_script is not None:
                 p.prompt = self.__apply_wildcards(wildcards_script, p.prompt, i)
 
-            jobs = self.workflow.select_jobs(faces, i)
+            jobs = self.workflow.select_jobs(faces, i, entire_width, entire_height)
 
             if len(jobs) == 0:
                 continue

@@ -10,7 +10,9 @@ class Rect:
         self.top = top
         self.right = right
         self.bottom = bottom
-        self.center = right - int((right - left) / 2)
+        self.center = int((right + left) / 2)
+        self.middle = int((top + bottom) / 2)
+        self.size = (right - left) * (bottom - top)
 
     @classmethod
     def from_ndarray(cls, face_box: np.ndarray, tag: str = "face") -> "Rect":
