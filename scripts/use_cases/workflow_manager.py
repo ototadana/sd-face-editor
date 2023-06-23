@@ -1,4 +1,3 @@
-import json
 from typing import List, Tuple
 
 import cv2
@@ -6,9 +5,7 @@ import numpy as np
 from modules.processing import StableDiffusionProcessingImg2Img
 from PIL import Image
 
-from scripts.entities.definitions.condition import Condition
-from scripts.entities.definitions.job import Job
-from scripts.entities.definitions.workflow import Workflow
+from scripts.entities.definitions import Condition, Job, Workflow
 from scripts.entities.face import Face
 from scripts.entities.option import Option
 from scripts.entities.rect import Rect
@@ -18,35 +15,36 @@ from scripts.use_cases import registry
 class WorkflowManager:
     @classmethod
     def get(cls, workflow: str) -> "WorkflowManager":
-        return cls(Workflow().from_dict(json.loads(workflow)))
+        return cls(Workflow.parse_raw(workflow))
 
     def __init__(self, workflow: Workflow) -> None:
         self.workflow = workflow
 
-        fd = workflow.face_detector
-        self.face_detector = registry.face_detectors[fd.name]
-        self.face_detector_params = fd.params
-
     def detect_faces(self, image: Image, option: Option) -> List[Rect]:
-        fd = self.workflow.face_detector
+        results = []
 
-        face_detector = registry.face_detectors[fd.name]
-        params = fd.params.copy()
-        params["confidence"] = option.confidence
+        for fd in self.workflow.face_detector:
+            face_detector = registry.face_detectors[fd.name]
+            params = fd.params.copy()
+            params["confidence"] = option.confidence
+            results.extend(face_detector.detect_faces(image, **params))
 
-        return face_detector.detect_faces(image, **params)
+        return results
 
     def select_jobs(self, faces: List[Face], index: int, width: int, height: int) -> List[Job]:
-        jobs = []
-        for condition in self.workflow.conditions:
-            if faces[index].face_area is None:
-                continue
-            if not self.__is_tag_match(condition, faces[index]):
-                continue
-            if not self.__is_criteria_match(condition, faces, index, width, height):
-                continue
-            jobs.extend(condition.jobs)
-        return jobs
+        if faces[index].face_area is None:
+            return []
+
+        for rule in self.workflow.rules:
+            if rule.when is None:
+                return rule.then
+
+            if self.__is_tag_match(rule.when, faces[index]) and self.__is_criteria_match(
+                rule.when, faces, index, width, height
+            ):
+                return rule.then
+
+        return []
 
     def __is_tag_match(self, condition: Condition, face: Face) -> bool:
         if condition.tag is None or len(condition.tag) == 0:
@@ -61,6 +59,8 @@ class WorkflowManager:
 
     def __is_criteria_match(self, condition: Condition, faces: List[Face], index: int, width: int, height: int) -> bool:
         num = condition.num
+        if num is None:
+            num = 9999
         if num < 1:
             return False
 

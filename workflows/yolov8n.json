@@ -1,27 +1,25 @@
 {
-    "name": "YOLO",
     "face_detector": {
         "name": "YOLO",
         "params": {
-          "path": "yolov8n.pt"
+            "path": "yolov8n.pt"
         }
     },
-    "conditions": [
+    "rules": [
         {
-            "tag": "Any",
-            "criteria": "All",
-            "num": 9999,
-            "jobs": [
-                {
-                    "name": "Default",
-                    "face_processor": {
-                        "name": "img2img"
-                    },
-                    "mask_generator": {
-                        "name": "Rect"
-                    }
-                }
-            ]
+            "when": {
+                "tag": "person"
+            },
+            "then": {
+                "face_processor": "img2img",
+                "mask_generator": "BiSeNet"
+            }
+        },
+        {
+            "then": {
+                "face_processor": "img2img",
+                "mask_generator": "Rect"
+            }
         }
     ]
 }
