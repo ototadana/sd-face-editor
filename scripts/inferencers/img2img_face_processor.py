@@ -29,7 +29,7 @@ class Img2ImgFaceProcessor(FaceProcessor):
         if len(np) > 0:
             p.negative_prompt = np
 
-        print(f"prompt for the face: {p.prompt}")
+        print(f"prompt for the {face.face_area.tag}: {p.prompt}")
 
         proc = process_images(p)
         return proc.images[0]

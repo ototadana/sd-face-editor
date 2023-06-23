@@ -17,7 +17,7 @@ class LbpcascadeAnimefaceDetector(FaceDetector):
     def name(self):
         return "lbpcascade_animeface"
 
-    def detect_faces(self, image: Image, min_neighbors: int, **kwargs) -> List[Rect]:
+    def detect_faces(self, image: Image, min_neighbors: int = 5, **kwargs) -> List[Rect]:
         cascade = cv2.CascadeClassifier(self.cascade_file)
         gray = cv2.cvtColor(np.array(image), cv2.COLOR_BGR2GRAY)
         gray = cv2.equalizeHist(gray)

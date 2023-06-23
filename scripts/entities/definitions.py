@@ -1,11 +1,11 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from pydantic import BaseModel, root_validator, validator
 
 
 class Worker(BaseModel):
     name: str
-    params: Optional[dict]
+    params: Optional[Dict]
 
     @root_validator(pre=True)
     def default_params(cls, values):
@@ -13,11 +13,13 @@ class Worker(BaseModel):
             values["params"] = {}
         return values
 
+    @validator("name")
+    def lowercase_name(cls, v):
+        return v.lower()
 
-def parse_worker_field(value: Union[str, dict, Worker, List[Union[str, dict, Worker]]]) -> Union[Worker, List[Worker]]:
-    if isinstance(value, list):
-        return [parse_worker_field(item) for item in value]  # type: ignore
-    if isinstance(value, dict):
+
+def parse_worker_field(value: Union[str, Dict, Worker]) -> Worker:
+    if isinstance(value, Dict):
         return Worker(**value)
     if isinstance(value, str):
         return Worker(name=value)
@@ -34,25 +36,21 @@ class Job(BaseModel):
     face_processor: Worker
     mask_generator: Worker
 
-    @root_validator(pre=True)
-    def parse_worker_fields(cls, values: Dict[str, Any]):
-        for key, value in values.items():
-            values[key] = parse_worker_field(value)
-        return values
+    @validator("face_processor", "mask_generator", pre=True)
+    def parse_worker_fields(cls, value):
+        return parse_worker_field(value)
 
 
 class Rule(BaseModel):
     when: Optional[Condition] = None
     then: Union[Job, List[Job]]
 
-    @root_validator(pre=True)
-    def parse_jobs(cls, values: Dict[str, Any]):
-        if "then" in values:
-            if isinstance(values["then"], dict):
-                values["then"] = [Job.parse_obj(values["then"])]
-            elif isinstance(values["then"], list):
-                values["then"] = [Job.parse_obj(job) for job in values["then"]]
-        return values
+    @validator("then", pre=True)
+    def parse_jobs(cls, value):
+        if isinstance(value, Dict):
+            return [Job.parse_obj(value)]
+        elif isinstance(value, List):
+            return [Job.parse_obj(job) for job in value]
 
 
 class Workflow(BaseModel):
@@ -61,10 +59,13 @@ class Workflow(BaseModel):
 
     @validator("face_detector", pre=True)
     def parse_face_detector(cls, value):
-        return [parse_worker_field(value)]
+        if isinstance(value, List):
+            return [parse_worker_field(item) for item in value]
+        else:
+            return [parse_worker_field(value)]
 
     @validator("rules", pre=True)
     def wrap_rule_in_list(cls, value):
-        if not isinstance(value, list):
+        if not isinstance(value, List):
             return [value]
         return value
