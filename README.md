@@ -255,37 +255,67 @@ Let's delve into the concept of "Workflow Components", or "inferencers" as they 
 #### Face Detector
 Select a model or algorithm to be used for face detection.
 
-- [RetinaFace](https://github.com/xinntao/facexlib/blob/master/facexlib/detection/__init__.py) : This serves as the default Face Detector.
-- [lbpcascade_animeface](https://github.com/nagadomi/lbpcascade_animeface) :  A face detector designed specifically for anime/manga.
+- [RetinaFace](https://github.com/xinntao/facexlib/blob/master/facexlib/detection/__init__.py) : This face detector is used by default and is designed to accurately detect faces in various conditions.
+- [lbpcascade_animeface](https://github.com/nagadomi/lbpcascade_animeface) : This face detector is designed specifically for anime/manga faces.
+- [YOLO](https://github.com/ultralytics/ultralytics): This detector utilizes the YOLO (You Only Look Once) system for real-time object detection. While not designed specifically for face detection, it can be used to detect other objects of interest in addition to faces.
+
+  YoloDetector takes the following parameters which can be specified in the 'params' of the JSON configuration:
+
+  - `path`: (string, optional): The path to the pre-trained model file. This, or a combination of `repo_id` and `filename`, is required.
+  - `repo_id`: (string, optional): The repository ID where the pre-trained model is stored. If this, along with `filename`, is provided, the model will be downloaded from the Hugging Face Model Hub.
+  - `filename`: (string, optional): The name of the file in the repository. To be used with `repo_id`.
+  - `conf`: (float, optional, default: 0.5): The confidence threshold for object detection.
+
+  Note: If `repo_id` and `filename` are specified, the model path will be retrieved from the Hugging Face Model Hub.
 
 #### Face Processor
-- img2img: This is the default implementation that enhances enlarged face images using img2img.
+Choose an algorithm or method to process the detected faces.
+
+- `img2img`: This is the default implementation that enhances enlarged face images using img2img.
+- `Blur`: This face processor applies a Gaussian blur to the detected face region. The intensity of the blur can be specified using the `radius` parameter in the 'params' of the JSON configuration. The larger the radius, the more intense the blur effect.
+
+  Blur takes the following parameter which can be specified in the 'params' of the JSON configuration:
+
+  - `radius`: (integer, optional, default: 20): The radius of the Gaussian blur filter. 
+- `NoOp`: This face processor does not apply any processing to the detected faces. It can be used when no face enhancement or modification is desired, and only detection or other aspects of the workflow are needed.
+
 
 #### Mask Generator
 Choose a model or algorithm for generating masks.
 
 - [BiSeNet](https://github.com/xinntao/facexlib/blob/master/facexlib/parsing/__init__.py) : This operates as the default Mask Generator.
-- Ellipse : This option draws an ellipse around the detected face region to generate a mask.
-- Rect : This is a simplistic implementation that uses the detected face region as a direct mask.
+- `Ellipse`: This option draws an ellipse around the detected face region to generate a mask.
+- `Rect`: This is a simplistic implementation that uses the detected face region as a direct mask.
+- `NoMask`: This option generates a "mask" that is simply an all-white image of the same size as the input face image. It essentially does not mask any part of the image and can be used in scenarios where no masking is desired.
+
 
 ### Workflow JSON Reference
 
-- `name` (string): The name of the workflow definition.
-- `face_detector` (object): The face detector component to be used in the workflow.
-  - `name` (string): The name of the face detector implementation.
-  - `params` (object): Component-specific parameters, represented as key-value pairs.
-- `conditions` (array): A list of conditions. Each condition is an object that consists of a tag, criteria, num, and jobs.
-  - `tag` (string): A tag corresponding to the type of face detected by the Face Detector. If the detected face's tag matches this tag, the jobs under this condition might be executed.
-  - `criteria` (string): This determines which faces will be processed, based on position or size. Available options include 'Left', 'Right', 'Center', 'Top', 'Middle', 'Bottom', 'Small', 'Large', and 'All'. For a job to be executed, both the detected face's tag and these criteria need to match.
-  - `num` (integer): The maximum number of faces to be processed that match the specified tag and criteria. For example, if `criteria` is 'left' and `num` is 2, then the two leftmost faces matching the tag will be processed.
-  - `jobs` (array): The list of jobs to be executed if the condition's tag and criteria are met. Each job is an object with the following properties:
-    - `name` (string): The name of the job.
-    - `face_processor` (object): The face processor component to be used in the job.
-      - `name` (string): The name of the face processor implementation.
-      - `params` (object): Component-specific parameters, represented as key-value pairs.
-    - `mask_generator` (object): The mask generator component to be used in the job.
-      - `name` (string): The name of the mask generator implementation.
-      - `params` (object): Component-specific parameters, represented as key-value pairs.
+- `face_detector` (string or object, required): The face detector component to be used in the workflow.
+  - When specified as a string, it is considered as the `name` of the face detector implementation.
+  - When specified as an object:
+    - `name` (string, required): The name of the face detector implementation.
+    - `params` (object, optional): Parameters for the component, represented as key-value pairs.
+- `rules` (array or object, required): One or more rules to be applied.
+  - Each rule can be an object that consists of `when` and `then`:
+    - `when` (object, optional): The condition for the rule.
+      - `tag` (string, optional): A tag corresponding to the type of face detected by the face detector.
+      - `criteria` (string, optional): This determines which faces will be processed, based on position or size. Available options include 'left', 'right', 'center', 'top', 'middle', 'bottom', 'small', 'large', and 'all'.
+    - `num` (integer, optional): The maximum number of faces to be processed that match the specified criteria. If `num` is not specified, it is considered as 1. For example, if `criteria` is 'left' and `num` is not specified, then only the leftmost face will be processed. If `criteria` is 'left' and `num` is 2, then the two leftmost faces will be processed.
+    - `then` (object or array of objects, required): The job or list of jobs to be executed if the `when` condition is met.
+      - Each job is an object with the following properties:
+        - `face_processor` (object or string, required): The face processor component to be used in the job.
+          - When specified as a string, it is considered as the `name` of the face processor implementation.
+          - When specified as an object:
+            - `name` (string, required): The name of the face processor implementation.
+            - `params` (object, optional): Parameters for the component, represented as key-value pairs.
+        - `mask_generator` (object or string, required): The mask generator component to be used in the job.
+          - When specified as a string, it is considered as the `name` of the mask generator implementation.
+          - When specified as an object:
+            - `name` (string,  required): The name of the mask generator implementation.
+            - `params` (object, optional): Parameters for the component, represented as key-value pairs.
+  
+Rules are processed in the order they are specified. Once a face is processed by a rule, it will not be processed by subsequent rules. The last rule can be specified with `then` only (i.e., without `when`), which will process all faces that have not been processed by previous rules.
 
 
 ## API

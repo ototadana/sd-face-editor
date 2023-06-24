@@ -133,6 +133,9 @@ class ImageProcessor:
                 continue
 
             proc_image = self.workflow.process(jobs, face, p, option)
+            if proc_image is None:
+                continue
+
             if proc_image.mode != "RGB":
                 proc_image = proc_image.convert("RGB")
 

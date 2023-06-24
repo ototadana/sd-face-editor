@@ -1,0 +1,9 @@
+{
+    "face_detector": "RetinaFace",
+    "rules": {
+        "then": {
+            "face_processor": "Blur",
+            "mask_generator": "NoMask"
+        }
+    }
+}

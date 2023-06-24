@@ -71,18 +71,18 @@ class WorkflowManager:
         return condition_tag == face_tag
 
     def __is_criteria_match(self, condition: Condition, faces: List[Face], index: int, width: int, height: int) -> bool:
-        num = condition.num
-        if num is None:
-            num = 9999
-        if num < 1:
-            return False
-
         if condition.criteria is None or len(condition.criteria) == 0:
             return True
 
         criteria = condition.criteria.lower()
-        if criteria in {"any", "all"}:
+        if criteria == "all":
             return True
+
+        num = condition.num
+        if num is None:
+            num = 1
+        if num < 1:
+            return False
 
         if criteria in {"left", "leftmost"}:
             return self.__is_left(num, faces, index)
