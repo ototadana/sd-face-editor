@@ -15,7 +15,20 @@ from scripts.use_cases import registry
 class WorkflowManager:
     @classmethod
     def get(cls, workflow: str) -> "WorkflowManager":
-        return cls(Workflow.parse_raw(workflow))
+        manager = cls(Workflow.parse_raw(workflow))
+
+        for face_detector in manager.workflow.face_detector:
+            if face_detector.name not in registry.face_detector_names:
+                raise KeyError(f"face_detector `{face_detector.name}` does not exist")
+
+        for rule in manager.workflow.rules:
+            for job in rule.then:
+                if job.face_processor.name not in registry.face_processor_names:
+                    raise KeyError(f"face_processor `{job.face_processor.name}` does not exist")
+                if job.mask_generator.name not in registry.mask_generator_names:
+                    raise KeyError(f"mask_generator `{job.mask_generator.name}` does not exist")
+
+        return manager
 
     def __init__(self, workflow: Workflow) -> None:
         self.workflow = workflow
