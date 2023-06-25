@@ -43,8 +43,12 @@ def load_classes_from_directory(base_class: Type) -> List[Type]:
     for file in os.listdir(inferencers_dir):
         if file.endswith(".py") and file != os.path.basename(__file__):
             file_path = os.path.join(inferencers_dir, file)
-            classes = load_classes_from_file(file_path, base_class)
-            if classes:
-                print(f"Successfully loaded {len(classes)} classes from {file_path}")
-                all_classes.extend(classes)
+            try:
+                classes = load_classes_from_file(file_path, base_class)
+                if classes:
+                    all_classes.extend(classes)
+            except Exception as e:
+                print(f"Face Editor: Can't load {file_path}")
+                print(str(e))
+
     return all_classes

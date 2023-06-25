@@ -1,25 +1,9 @@
 {
-    "face_detector": {
-        "name": "YOLO",
-        "params": {
-            "path": "yolov8n.pt"
+    "face_detector": "YOLO",
+    "rules": {
+        "then": {
+            "face_processor": "img2img",
+            "mask_generator": "YOLO"
         }
-    },
-    "rules": [
-        {
-            "when": {
-                "tag": "person"
-            },
-            "then": {
-                "face_processor": "img2img",
-                "mask_generator": "BiSeNet"
-            }
-        },
-        {
-            "then": {
-                "face_processor": "img2img",
-                "mask_generator": "Rect"
-            }
-        }
-    ]
+    }
 }

@@ -145,7 +145,11 @@ class ImageProcessor:
             if option.show_intermediate_steps:
                 feature = self.__get_feature(p.prompt, entire_prompt)
                 mask_info = f"size:{option.mask_size}, blur:{option.mask_blur}"
-                output_images.append(Image.fromarray(self.__add_comment(face_image, feature)))
+                output_images.append(
+                    Image.fromarray(
+                        self.__add_comment(self.__add_comment(face_image, feature), face.face_area.tag, True)
+                    )
+                )
                 output_images.append(
                     Image.fromarray(self.__add_comment(self.__to_masked_image(mask_image, face_image), mask_info))
                 )
@@ -227,13 +231,14 @@ class ImageProcessor:
             return ""
         return prompt.replace(entire_prompt, "")
 
-    def __add_comment(self, image: np.ndarray, comment: str) -> np.ndarray:
+    def __add_comment(self, image: np.ndarray, comment: str, top: bool = False) -> np.ndarray:
         image = np.copy(image)
         h, _, _ = image.shape
+        pos = (10, 48) if top else (10, h - 16)
         cv2.putText(
             image,
             text=comment,
-            org=(10, h - 16),
+            org=pos,
             fontFace=cv2.FONT_HERSHEY_SIMPLEX,
             fontScale=1.2,
             color=(0, 0, 0),
@@ -242,7 +247,7 @@ class ImageProcessor:
         cv2.putText(
             image,
             text=comment,
-            org=(10, h - 16),
+            org=pos,
             fontFace=cv2.FONT_HERSHEY_SIMPLEX,
             fontScale=1.2,
             color=(255, 255, 255),
