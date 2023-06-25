@@ -75,12 +75,15 @@ class WorkflowManager:
             return True
 
         criteria = condition.criteria.lower()
+        num = 1
+        if ":" in criteria:
+            c = criteria.split(":")
+            criteria = c[0].strip()
+            num = int(c[1].strip())
+
         if criteria == "all":
             return True
 
-        num = condition.num
-        if num is None:
-            num = 1
         if num < 1:
             return False
 

@@ -29,7 +29,12 @@ def parse_worker_field(value: Union[str, Dict, Worker]) -> Worker:
 class Condition(BaseModel):
     tag: Optional[str]
     criteria: Optional[str]
-    num: Optional[int]
+
+    @validator("criteria")
+    def validate_criteria(cls, value):
+        if ":" in value:
+            int(value.split(":")[1].strip())
+        return value
 
 
 class Job(BaseModel):

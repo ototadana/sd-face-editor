@@ -240,7 +240,7 @@ For more information, please see: [here](https://github.com/ototadana/sd-face-ed
 Denoising strength when inpainting to blend the new face with the whole image.
 If the border lines are too prominent, increase this value.
 
-
+---
 ## Workflow Editor
 Workflow Editor is where you can customize and experiment with various options beyond just the standard settings. 
 
@@ -304,8 +304,7 @@ Choose a model or algorithm for generating masks.
   - Each rule can be an object that consists of `when` and `then`:
     - `when` (object, optional): The condition for the rule.
       - `tag` (string, optional): A tag corresponding to the type of face detected by the face detector.
-      - `criteria` (string, optional): This determines which faces will be processed, based on position or size. Available options include 'left', 'right', 'center', 'top', 'middle', 'bottom', 'small', 'large', and 'all'.
-      - `num` (integer, optional): The maximum number of faces to be processed that match the specified criteria. If `num` is not specified, it is considered as 1. For example, if `criteria` is 'left' and `num` is not specified, then only the leftmost face will be processed. If `criteria` is 'left' and `num` is 2, then the two leftmost faces will be processed.
+      - `criteria` (string, optional): This determines which faces will be processed, based on position or size. Available options include 'left', 'right', 'center', 'top', 'middle', 'bottom', 'small', 'large', and 'all'. The maximum number of faces to be processed that match the specified criteria can be defined in this string, separated by a colon (`:`). For example, `'center:2'` would process the two most central faces. If a number is not specified, only one face (the most relevant according to the criteria) will be processed.
     - `then` (object or array of objects, required): The job or list of jobs to be executed if the `when` condition is met.
       - Each job is an object with the following properties:
         - `face_processor` (object or string, required): The face processor component to be used in the job.
@@ -322,6 +321,7 @@ Choose a model or algorithm for generating masks.
 Rules are processed in the order they are specified. Once a face is processed by a rule, it will not be processed by subsequent rules. The last rule can be specified with `then` only (i.e., without `when`), which will process all faces that have not been processed by previous rules.
 
 
+---
 ## API
 If you want to use this script as an extension (alwayson_scripts) in the [API](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/API), specify **"face editor ex"** as the script name as follows:
 
