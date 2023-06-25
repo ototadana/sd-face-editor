@@ -261,12 +261,10 @@ Select a model or algorithm to be used for face detection.
 
   YoloDetector takes the following parameters which can be specified in the 'params' of the JSON configuration:
 
-  - `path`: (string, optional): The path to the pre-trained model file. This, or a combination of `repo_id` and `filename`, is required.
-  - `repo_id`: (string, optional): The repository ID where the pre-trained model is stored. If this, along with `filename`, is provided, the model will be downloaded from the Hugging Face Model Hub.
-  - `filename`: (string, optional): The name of the file in the repository. To be used with `repo_id`.
+  - `path` (string, default: "yolov8n.pt"): Path to the model file. If `repo_id` is specified, the model will be downloaded from Hugging Face Model Hub instead, using `repo_id` and `filename`.
+  - `repo_id` (string, optional): The repository ID if the model is hosted on Hugging Face Model Hub. If this is specified, `path` will be ignored.
+  - `filename` (string, optional): The filename of the model in the Hugging Face Model Hub repository. Use this in combination with `repo_id`.
   - `conf`: (float, optional, default: 0.5): The confidence threshold for object detection.
-
-  Note: If `repo_id` and `filename` are specified, the model path will be retrieved from the Hugging Face Model Hub.
 
 #### Face Processor
 Choose an algorithm or method to process the detected faces.
@@ -276,7 +274,7 @@ Choose an algorithm or method to process the detected faces.
 
   Blur takes the following parameter which can be specified in the 'params' of the JSON configuration:
 
-  - `radius`: (integer, optional, default: 20): The radius of the Gaussian blur filter. 
+  - `radius`: (integer, default: 20): The radius of the Gaussian blur filter. 
 - `NoOp`: This face processor does not apply any processing to the detected faces. It can be used when no face enhancement or modification is desired, and only detection or other aspects of the workflow are needed.
 
 
@@ -287,6 +285,12 @@ Choose a model or algorithm for generating masks.
 - `Ellipse`: This option draws an ellipse around the detected face region to generate a mask.
 - `Rect`: This is a simplistic implementation that uses the detected face region as a direct mask.
 - `NoMask`: This option generates a "mask" that is simply an all-white image of the same size as the input face image. It essentially does not mask any part of the image and can be used in scenarios where no masking is desired.
+- [YOLO](https://github.com/ultralytics/ultralytics): This utilizes the YOLO (You Only Look Once) system for mask generation. Params include:
+  - `path` (string, default: "yolov8n-seg.pt"): Path to the model file. If `repo_id` is specified, the model will be downloaded from Hugging Face Model Hub instead, using `repo_id` and `filename`.
+  - `repo_id` (string, optional): The repository ID if the model is hosted on Hugging Face Model Hub. If this is specified, `path` will be ignored.
+  - `filename` (string, optional): The filename of the model in the Hugging Face Model Hub repository. Use this in combination with `repo_id`.
+  - `conf` (float, default: 0.5): Confidence threshold for detections. Any detection with a confidence lower than this will be ignored.
+- [AnimeSegmentation](https://github.com/SkyTNT/anime-segmentation): This utilizes the [Anime Segmentation](https://github.com/SkyTNT/anime-segmentation) model from the [Hugging Face Model Hub](https://huggingface.co/skytnt/anime-seg) to generate masks specifically designed for anime images. Note that this requires ONNX Runtime and a compatible CUDA device for inference.
 
 
 ### Workflow JSON Reference
@@ -301,7 +305,7 @@ Choose a model or algorithm for generating masks.
     - `when` (object, optional): The condition for the rule.
       - `tag` (string, optional): A tag corresponding to the type of face detected by the face detector.
       - `criteria` (string, optional): This determines which faces will be processed, based on position or size. Available options include 'left', 'right', 'center', 'top', 'middle', 'bottom', 'small', 'large', and 'all'.
-    - `num` (integer, optional): The maximum number of faces to be processed that match the specified criteria. If `num` is not specified, it is considered as 1. For example, if `criteria` is 'left' and `num` is not specified, then only the leftmost face will be processed. If `criteria` is 'left' and `num` is 2, then the two leftmost faces will be processed.
+      - `num` (integer, optional): The maximum number of faces to be processed that match the specified criteria. If `num` is not specified, it is considered as 1. For example, if `criteria` is 'left' and `num` is not specified, then only the leftmost face will be processed. If `criteria` is 'left' and `num` is 2, then the two leftmost faces will be processed.
     - `then` (object or array of objects, required): The job or list of jobs to be executed if the `when` condition is met.
       - Each job is an object with the following properties:
         - `face_processor` (object or string, required): The face processor component to be used in the job.
