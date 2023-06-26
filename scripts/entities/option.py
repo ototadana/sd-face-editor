@@ -16,7 +16,6 @@ class Option:
     DEFAULT_USE_MINIMAL_AREA = False
     DEFAULT_IGNORE_LARGER_FACES = True
     DEFAULT_AFFECTED_AREAS = ["Face"]
-    DEFAULT_SCRIPT_INDEX = -1
 
     def __init__(self, *args) -> None:
         self.face_margin = Option.DEFAULT_FACE_MARGIN
@@ -36,7 +35,6 @@ class Option:
         self.ignore_larger_faces = Option.DEFAULT_IGNORE_LARGER_FACES
         self.affected_areas = Option.DEFAULT_AFFECTED_AREAS
         self.show_original_image = Option.DEFAULT_SHOW_ORIGINAL_IMAGE
-        self.script_index = Option.DEFAULT_SCRIPT_INDEX
 
         if len(args) > 0 and isinstance(args[0], dict):
             self.update_by_dict(args[0])
@@ -70,7 +68,6 @@ class Option:
         self.ignore_larger_faces = args[14] if arg_len > 14 and isinstance(args[14], bool) else self.ignore_larger_faces
         self.affected_areas = args[15] if arg_len > 15 and isinstance(args[15], list) else self.affected_areas
         self.show_original_image = args[16] if arg_len > 16 and isinstance(args[16], bool) else self.show_original_image
-        self.script_index = args[17] if arg_len > 17 and isinstance(args[17], int) else self.script_index
 
     def update_by_dict(self, params: dict) -> None:
         self.face_margin = params.get("face_margin", self.face_margin)
@@ -90,7 +87,6 @@ class Option:
         self.ignore_larger_faces = params.get("ignore_larger_faces", self.ignore_larger_faces)
         self.affected_areas = params.get("affected_areas", self.affected_areas)
         self.show_original_image = params.get("show_original_image", self.show_original_image)
-        self.script_index = params.get("script_index", self.script_index)
 
     def to_dict(self) -> dict:
         return {
@@ -110,7 +106,6 @@ class Option:
             Option.add_prefix("ignore_larger_faces"): self.ignore_larger_faces,
             Option.add_prefix("affected_areas"): str.join(";", self.affected_areas),
             Option.add_prefix("show_original_image"): self.show_original_image,
-            Option.add_prefix("script_index"): self.script_index,
         }
 
     @staticmethod

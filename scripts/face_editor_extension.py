@@ -1,5 +1,6 @@
 import modules.scripts as scripts
 
+from modules import shared
 from scripts.entities.option import Option
 from scripts.inferencers.factory import InferencerFactory
 from scripts.ui.ui_builder import UiBuilder
@@ -33,10 +34,11 @@ class FaceEditorExtension(scripts.Script):
         if p.scripts is None and not hasattr(p.scripts, "alwayson_scripts"):
             return
         
-        if option.script_index >= len(p.scripts.alwayson_scripts) or option.script_index < -len(p.scripts.alwayson_scripts):
+        script_index = shared.opts.data.get("face_editor_script_index", -1)
+        if script_index >= len(p.scripts.alwayson_scripts) or script_index < -len(p.scripts.alwayson_scripts):
             return
         
-        if p.scripts.alwayson_scripts[option.script_index] == self:
+        if p.scripts.alwayson_scripts[script_index] == self:
             return
         
         for i, e in enumerate(p.scripts.alwayson_scripts):
@@ -44,10 +46,10 @@ class FaceEditorExtension(scripts.Script):
                 continue
 
             p.scripts.alwayson_scripts.pop(i)
-            if option.script_index == -1:
+            if script_index == -1:
                 p.scripts.alwayson_scripts.append(self)
             else:
-                p.scripts.alwayson_scripts.insert(option.script_index + 1, self)
+                p.scripts.alwayson_scripts.insert(script_index + 1, self)
 
 
     def postprocess(self, o, res, enabled, *args):

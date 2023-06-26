@@ -1,5 +1,6 @@
 import gradio as gr
 
+from modules import shared, script_callbacks
 from scripts.entities.option import Option
 from scripts.ui.param_value_parser import ParamValueParser
 
@@ -129,16 +130,6 @@ class UiBuilder:
                 )
                 self.infotext_fields.append((strength2, Option.add_prefix("strength2")))
 
-            with gr.Accordion("(6) Script Execution Order", open=False):
-                script_index = gr.Slider(
-                    label="Script Execution Position Index(0 is the first script, -1 is the last script to execute, etc.)",
-                    minimum=-10,
-                    maximum=10,
-                    step=1,
-                    value=Option.DEFAULT_SCRIPT_INDEX,
-                )
-                self.infotext_fields.append((script_index, Option.add_prefix("script_index")))
-
         return [
             face_margin,
             confidence,
@@ -157,5 +148,12 @@ class UiBuilder:
             ignore_larger_faces,
             affected_areas,
             show_original_image,
-            script_index,
         ]
+
+
+def on_ui_settings():
+    section = ('face_editor', "FaceEditor")
+    shared.opts.add_option("face_editor_script_index", shared.OptionInfo(-1, "Script Execution Position Index(0 is the first script, -1 is the last script to execute, etc.)", gr.Slider, {"minimum": -10, "maximum": 10, "step": 1}, section=section))
+
+
+script_callbacks.on_ui_settings(on_ui_settings)
