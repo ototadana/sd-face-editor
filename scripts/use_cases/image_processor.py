@@ -140,7 +140,7 @@ class ImageProcessor:
                 proc_image = proc_image.convert("RGB")
 
             face_image = np.array(proc_image)
-            mask_image = self.workflow.generate_mask(jobs, face_image, face.face_area_on_image, option)
+            mask_image = self.workflow.generate_mask(jobs, face_image, face, option)
 
             if option.show_intermediate_steps:
                 feature = self.__get_feature(p.prompt, entire_prompt)

@@ -8,7 +8,6 @@ from facexlib.parsing import init_parsing_model
 from facexlib.utils.misc import img2tensor
 from torchvision.transforms.functional import normalize
 
-from scripts.inferencers.face_area_mask_generator import FaceAreaMaskGenerator
 from scripts.use_cases.mask_generator import MaskGenerator
 
 
@@ -31,7 +30,7 @@ class BiSeNetMaskGenerator(MaskGenerator):
         face_image = face_image.copy()
 
         if use_minimal_area:
-            face_image = FaceAreaMaskGenerator.mask_non_face_areas(face_image, face_area_on_image)
+            face_image = MaskGenerator.mask_non_face_areas(face_image, face_area_on_image)
 
         h, w, _ = face_image.shape
 

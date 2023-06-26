@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List
 
 import cv2
 import numpy as np
@@ -146,9 +146,7 @@ class WorkflowManager:
             face.image = face_processor.process(face, p, **params)
         return face.image
 
-    def generate_mask(
-        self, jobs: List[Job], face_image: np.ndarray, face_area_on_image: Tuple[int, int, int, int], option: Option
-    ) -> np.ndarray:
+    def generate_mask(self, jobs: List[Job], face_image: np.ndarray, face: Face, option: Option) -> np.ndarray:
         mask = None
         for job in jobs:
             mg = job.mask_generator
@@ -157,7 +155,8 @@ class WorkflowManager:
             params["mask_size"] = option.mask_size
             params["use_minimal_area"] = option.use_minimal_area
             params["affected_areas"] = option.affected_areas
-            m = mask_generator.generate_mask(face_image, face_area_on_image, **params)
+            params["tag"] = face.face_area.tag
+            m = mask_generator.generate_mask(face_image, face.face_area_on_image, **params)
             if mask is None:
                 mask = m
             else:

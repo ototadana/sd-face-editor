@@ -19,6 +19,8 @@ class YoloMaskGenerator(MaskGenerator, YoloInferencer):
         self,
         face_image: np.ndarray,
         face_area_on_image: Tuple[int, int, int, int],
+        use_minimal_area: bool,
+        tag: str = "face",
         path: str = "yolov8n-seg.pt",
         repo_id: str = None,
         filename: str = None,
@@ -27,15 +29,22 @@ class YoloMaskGenerator(MaskGenerator, YoloInferencer):
     ) -> np.ndarray:
         self.load_model(path, repo_id, filename)
 
+        names = self.model.names
         output = self.model.predict(face_image, device=shared.device)
+
+        if use_minimal_area:
+            face_image = MaskGenerator.mask_non_face_areas(face_image, face_area_on_image)
 
         combined_mask = np.zeros(face_image.shape[:2], np.uint8)
 
         for detection in output:
+            if detection.masks is None:
+                raise RuntimeError(f"This model does not support masks: {self.loaded_path}")
             boxes = detection.boxes
             for i, box in enumerate(boxes):
+                box_tag = names[int(box.cls)]
                 box_conf = float(box.conf[0])
-                if box_conf < conf:
+                if box_tag != tag or box_conf < conf:
                     continue
                 mask = cv2.resize(detection.masks[i].data[0].cpu().numpy(), (512, 512))
                 combined_mask += (mask * 255).astype(np.uint8)
