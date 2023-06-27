@@ -105,7 +105,6 @@ class Option:
             Option.add_prefix("use_minimal_area"): self.use_minimal_area,
             Option.add_prefix("ignore_larger_faces"): self.ignore_larger_faces,
             Option.add_prefix("affected_areas"): str.join(";", self.affected_areas),
-            Option.add_prefix("show_original_image"): self.show_original_image,
         }
 
     @staticmethod

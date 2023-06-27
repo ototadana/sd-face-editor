@@ -152,7 +152,7 @@ class UiBuilder:
 
 
 def on_ui_settings():
-    section = ('face_editor', "FaceEditor")
+    section = ('face_editor', "Face Editor")
     shared.opts.add_option("face_editor_script_index", shared.OptionInfo(-1, "Script Execution Position Index(0 is the first script, -1 is the last script to execute, etc.)", gr.Slider, {"minimum": -10, "maximum": 10, "step": 1}, section=section))
 
 
