@@ -1,5 +1,5 @@
 {
-    "face_detector": "lbpcascade_animeface",
+    "face_detector": "MediaPipe",
     "rules": {
         "then": {
             "face_processor": "img2img",

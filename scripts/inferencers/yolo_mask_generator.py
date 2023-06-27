@@ -38,13 +38,14 @@ class YoloMaskGenerator(MaskGenerator, YoloInferencer):
         combined_mask = np.zeros(face_image.shape[:2], np.uint8)
 
         for detection in output:
-            if detection.masks is None:
-                raise RuntimeError(f"This model does not support masks: {self.loaded_path}")
             boxes = detection.boxes
             for i, box in enumerate(boxes):
                 box_tag = names[int(box.cls)]
                 box_conf = float(box.conf[0])
                 if box_tag != tag or box_conf < conf:
+                    continue
+                if detection.masks is None:
+                    print(f"This model may not support masks: {self.loaded_path}")
                     continue
                 mask = cv2.resize(detection.masks[i].data[0].cpu().numpy(), (512, 512))
                 combined_mask += (mask * 255).astype(np.uint8)
