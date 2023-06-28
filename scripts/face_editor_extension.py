@@ -1,5 +1,6 @@
 import modules.scripts as scripts
 
+from modules import shared
 from scripts.entities.option import Option
 from scripts.inferencers.factory import InferencerFactory
 from scripts.ui.ui_builder import UiBuilder
@@ -29,11 +30,12 @@ class FaceEditorExtension(scripts.Script):
         option = Option(*args)
         if not option.save_original_image:
             p.do_not_save_samples = True
-
-        if p.scripts is not None and hasattr(p.scripts, "alwayson_scripts") and p.scripts.alwayson_scripts[-1] != self:
+                
+        if p.scripts is not None and hasattr(p.scripts, "alwayson_scripts"):
+            script_index = shared.opts.data.get("face_editor_script_index", 99)
             for i, e in enumerate(p.scripts.alwayson_scripts):
                 if e == self:
-                    p.scripts.alwayson_scripts.append(p.scripts.alwayson_scripts.pop(i))
+                    p.scripts.alwayson_scripts.insert(script_index, p.scripts.alwayson_scripts.pop(i))
                     break
 
     def postprocess(self, o, res, enabled, *args):

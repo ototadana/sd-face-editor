@@ -1,5 +1,6 @@
 import gradio as gr
 
+from modules import shared, script_callbacks
 from scripts.entities.option import Option
 from scripts.ui.param_value_parser import ParamValueParser
 
@@ -148,3 +149,11 @@ class UiBuilder:
             affected_areas,
             show_original_image,
         ]
+
+
+def on_ui_settings():
+    section = ('face_editor', "Face Editor")
+    shared.opts.add_option("face_editor_script_index", shared.OptionInfo(99, "Script Execution Position Index(0 means the first, 99 means the last script to execute, etc.)", gr.Slider, {"minimum": 0, "maximum": 99, "step": 1}, section=section))
+
+
+script_callbacks.on_ui_settings(on_ui_settings)
