@@ -8,12 +8,14 @@ from facexlib.parsing import init_parsing_model
 from facexlib.utils.misc import img2tensor
 from torchvision.transforms.functional import normalize
 
+from scripts.inferencers.vignette_mask_generator import VignetteMaskGenerator
 from scripts.use_cases.mask_generator import MaskGenerator
 
 
 class BiSeNetMaskGenerator(MaskGenerator):
     def __init__(self) -> None:
         self.mask_model = init_parsing_model(device=shared.device)
+        self.fallback_mask_generator = VignetteMaskGenerator()
 
     def name(self):
         return "BiSeNet"
@@ -25,6 +27,7 @@ class BiSeNetMaskGenerator(MaskGenerator):
         affected_areas: List[str],
         mask_size: int,
         use_minimal_area: bool,
+        fallback_ratio: float = 0.25,
         **kwargs,
     ) -> np.ndarray:
         face_image = face_image.copy()
@@ -54,6 +57,9 @@ class BiSeNetMaskGenerator(MaskGenerator):
 
         if w != 512 or h != 512:
             mask = cv2.resize(mask, dsize=(w, h))
+
+        if MaskGenerator.calculate_mask_coverage(mask) < fallback_ratio:
+            mask = self.fallback_mask_generator.generate_mask(face_image, face_area_on_image)
 
         return mask
 

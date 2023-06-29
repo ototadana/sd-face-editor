@@ -1,6 +1,6 @@
 import modules.scripts as scripts
-
 from modules import shared
+
 from scripts.entities.option import Option
 from scripts.ui.ui_builder import UiBuilder
 from scripts.use_cases.image_processor import ImageProcessor
@@ -30,7 +30,7 @@ class FaceEditorExtension(scripts.Script):
         option = Option(*args)
         if not option.save_original_image:
             p.do_not_save_samples = True
-                
+
         if p.scripts is not None and hasattr(p.scripts, "alwayson_scripts"):
             script_index = shared.opts.data.get("face_editor_script_index", 99)
             for i, e in enumerate(p.scripts.alwayson_scripts):

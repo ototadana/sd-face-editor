@@ -20,6 +20,7 @@ from PIL import Image
 from scripts.entities.face import Face
 from scripts.entities.option import Option
 from scripts.entities.rect import Rect
+from scripts.use_cases.mask_generator import MaskGenerator
 from scripts.use_cases.workflow_manager import WorkflowManager
 
 os.makedirs(os.path.join(tempfile.gettempdir(), "gradio"), exist_ok=True)
@@ -144,7 +145,8 @@ class ImageProcessor:
 
             if option.show_intermediate_steps:
                 feature = self.__get_feature(p.prompt, entire_prompt)
-                mask_info = f"size:{option.mask_size}, blur:{option.mask_blur}"
+                coverage = MaskGenerator.calculate_mask_coverage(mask_image) * 100
+                mask_info = f"size:{option.mask_size}, blur:{option.mask_blur}, cov:{coverage:.0f}%"
                 output_images.append(
                     Image.fromarray(
                         self.__add_comment(self.__add_comment(face_image, feature), face.face_area.tag, True)
@@ -308,7 +310,7 @@ class ImageProcessor:
         infos.extend([infos[0]] * (image_count - len(infos)))
 
     def __to_masked_image(self, mask_image: np.ndarray, image: np.ndarray) -> np.ndarray:
-        gray_mask = np.where(mask_image == 0, 47, 255) / 255.0
+        gray_mask = mask_image / 255.0
         return (image * gray_mask).astype("uint8")
 
     def __crop_face(self, image: Image, option: Option) -> List[Face]:

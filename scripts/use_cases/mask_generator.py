@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Tuple
 
+import cv2
 import numpy as np
 
 
@@ -27,3 +28,10 @@ class MaskGenerator(ABC):
         image[:, :left] = 0
         image[:, right:] = 0
         return image
+
+    @staticmethod
+    def calculate_mask_coverage(mask: np.ndarray):
+        gray_mask = cv2.cvtColor(mask, cv2.COLOR_RGB2GRAY)
+        non_black_pixels = np.count_nonzero(gray_mask)
+        total_pixels = gray_mask.size
+        return non_black_pixels / total_pixels

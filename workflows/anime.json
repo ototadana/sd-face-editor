@@ -3,7 +3,7 @@
     "rules": {
         "then": {
             "face_processor": "img2img",
-            "mask_generator": "MediaPipe"
+            "mask_generator": "Vignette"
         }
     }
 }
