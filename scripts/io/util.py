@@ -4,6 +4,7 @@ import os
 from typing import List, Type
 
 import modules.scripts as scripts
+from modules import shared
 
 
 def get_path(*p: str) -> str:
@@ -38,11 +39,28 @@ def load_classes_from_file(file_path: str, base_class: Type) -> List[Type]:
     return classes
 
 
-def load_classes_from_directory(base_class: Type) -> List[Type]:
+def load_classes_from_directory(base_class: Type, installer: bool = False) -> List[Type]:
+    if not installer:
+        all_classes = load_classes_from_directory_(base_class, inferencers_dir, False)
+    else:
+        all_classes = []
+
+    for component in shared.opts.data.get("face_editor_additional_components", []):
+        all_classes.extend(
+            load_classes_from_directory_(base_class, os.path.join(inferencers_dir, component), installer)
+        )
+
+    return all_classes
+
+
+def load_classes_from_directory_(base_class: Type, dir: str, installer: bool) -> List[Type]:
     all_classes = []
-    for file in os.listdir(inferencers_dir):
+    for file in os.listdir(dir):
+        if installer and "install" not in file:
+            continue
+
         if file.endswith(".py") and file != os.path.basename(__file__):
-            file_path = os.path.join(inferencers_dir, file)
+            file_path = os.path.join(dir, file)
             try:
                 classes = load_classes_from_file(file_path, base_class)
                 if classes:

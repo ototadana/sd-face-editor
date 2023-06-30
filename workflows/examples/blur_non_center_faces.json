@@ -6,8 +6,8 @@
                 "criteria": "center"
             },
             "then": {
-                "face_processor": "NoOp",
-                "mask_generator": "NoMask"
+                "face_processor": "img2img",
+                "mask_generator": "bisenet"
             }
         },
         {

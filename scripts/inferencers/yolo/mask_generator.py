@@ -4,7 +4,7 @@ import cv2
 import modules.shared as shared
 import numpy as np
 
-from scripts.inferencers.yolo_inferencer import YoloInferencer
+from scripts.inferencers.yolo.inferencer import YoloInferencer
 from scripts.use_cases.mask_generator import MaskGenerator
 
 

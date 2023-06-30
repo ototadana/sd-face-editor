@@ -147,10 +147,9 @@ class ImageProcessor:
                 feature = self.__get_feature(p.prompt, entire_prompt)
                 coverage = MaskGenerator.calculate_mask_coverage(mask_image) * 100
                 mask_info = f"size:{option.mask_size}, blur:{option.mask_blur}, cov:{coverage:.0f}%"
+                tag = f"{face.face_area.tag} ({face.face_area.width}x{face.face_area.height})"
                 output_images.append(
-                    Image.fromarray(
-                        self.__add_comment(self.__add_comment(face_image, feature), face.face_area.tag, True)
-                    )
+                    Image.fromarray(self.__add_comment(self.__add_comment(face_image, feature), tag, True))
                 )
                 output_images.append(
                     Image.fromarray(self.__add_comment(self.__to_masked_image(mask_image, face_image), mask_info))

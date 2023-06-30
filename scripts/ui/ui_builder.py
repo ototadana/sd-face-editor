@@ -1,7 +1,10 @@
-import gradio as gr
+import os
 
-from modules import shared, script_callbacks
+import gradio as gr
+from modules import script_callbacks, shared
+
 from scripts.entities.option import Option
+from scripts.io.util import inferencers_dir
 from scripts.ui import workflow as workflow_ui
 from scripts.ui.param_value_parser import ParamValueParser
 
@@ -163,8 +166,32 @@ class UiBuilder:
 
 
 def on_ui_settings():
-    section = ('face_editor', "Face Editor")
-    shared.opts.add_option("face_editor_script_index", shared.OptionInfo(99, "Script Execution Position Index(0 means the first, 99 means the last script to execute, etc.)", gr.Slider, {"minimum": 0, "maximum": 99, "step": 1}, section=section))
+    section = ("face_editor", "Face Editor")
+
+    additional_components = []
+    with os.scandir(inferencers_dir) as entries:
+        for entry in entries:
+            if entry.is_dir() and entry.name[0].isalnum():
+                additional_components.append(entry.name)
+
+    shared.opts.add_option(
+        "face_editor_additional_components",
+        shared.OptionInfo(
+            [], "Additional Components", gr.CheckboxGroup, {"choices": additional_components}, section=section
+        ),
+    )
+
+    shared.opts.add_option(
+        "face_editor_script_index",
+        shared.OptionInfo(
+            99,
+            "The position in postprocess at which this script will be executed; "
+            "0 means it will be executed before any scripts, 99 means it will probably be executed last.",
+            gr.Slider,
+            {"minimum": 0, "maximum": 99, "step": 1},
+            section=section,
+        ),
+    )
 
 
 script_callbacks.on_ui_settings(on_ui_settings)

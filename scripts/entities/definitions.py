@@ -30,10 +30,34 @@ class Condition(BaseModel):
     tag: Optional[str]
     criteria: Optional[str]
 
+    def get_indices(self) -> List[int]:
+        if self.criteria is None or ":" not in self.criteria:
+            return [0]
+
+        indices: List[int] = []
+        for part in self.criteria.split(":")[1].split(","):
+            part = part.strip()
+            if "-" in part:
+                start, end = map(int, [x.strip() for x in part.split("-")])
+                indices.extend(range(start, end + 1))
+            else:
+                indices.append(int(part))
+
+        return indices
+
+    def get_criteria(self) -> str:
+        if self.criteria is None or self.criteria == "":
+            return ""
+        return self.criteria.split(":")[0].strip().lower()
+
+    def has_criteria(self) -> bool:
+        return len(self.get_criteria()) > 0
+
     @validator("criteria")
     def validate_criteria(cls, value):
-        if ":" in value:
-            int(value.split(":")[1].strip())
+        c = cls()
+        c.criteria = value
+        c.get_indices()
         return value
 
 

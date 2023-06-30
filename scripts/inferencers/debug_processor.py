@@ -31,7 +31,7 @@ def color_generator(colors):
 color_iter = color_generator(colors)
 
 
-class NoOpProcessor(FaceProcessor):
+class DebugProcessor(FaceProcessor):
     def name(self) -> str:
         return "Debug"
 

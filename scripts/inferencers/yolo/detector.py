@@ -4,7 +4,7 @@ import modules.shared as shared
 from PIL import Image
 
 from scripts.entities.rect import Rect
-from scripts.inferencers.yolo_inferencer import YoloInferencer
+from scripts.inferencers.yolo.inferencer import YoloInferencer
 from scripts.use_cases.face_detector import FaceDetector
 
 

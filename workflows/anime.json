@@ -3,7 +3,12 @@
     "rules": {
         "then": {
             "face_processor": "img2img",
-            "mask_generator": "Vignette"
+            "mask_generator": {
+                "name": "BiSeNet",
+                "params": {
+                    "fallback_ratio": 0.3
+                }
+            }
         }
     }
 }

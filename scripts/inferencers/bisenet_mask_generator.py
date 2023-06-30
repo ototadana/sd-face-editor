@@ -59,7 +59,7 @@ class BiSeNetMaskGenerator(MaskGenerator):
             mask = cv2.resize(mask, dsize=(w, h))
 
         if MaskGenerator.calculate_mask_coverage(mask) < fallback_ratio:
-            mask = self.fallback_mask_generator.generate_mask(face_image, face_area_on_image)
+            mask = self.fallback_mask_generator.generate_mask(face_image, face_area_on_image, use_minimal_area)
 
         return mask
 
