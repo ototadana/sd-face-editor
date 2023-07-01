@@ -1,6 +1,6 @@
 import json
 import os
-from typing import List
+from typing import Any, Dict, List
 
 import gradio as gr
 from modules import shared
@@ -50,8 +50,16 @@ def get_files() -> List[str]:
     return files
 
 
-def refresh_files() -> dict:
-    return gr.update(choices=get_files())
+def refresh_files(workflow: str, file: str) -> dict:
+    files = get_files()
+    kwargs: Dict[str, Any] = {"choices": files}
+    if workflow:
+        for file in files:
+            if load_workflow(file) == workflow:
+                kwargs["value"] = file
+                break
+
+    return gr.update(**kwargs)
 
 
 def validate_workflow(workflow: str) -> str:
@@ -93,19 +101,19 @@ def build(workflow_selector: gr.Dropdown):
             validate_button = gr.Button(value="✅", scale=0, size="sm", elem_classes="tool")
 
         filename_dropdown.input(load_workflow, inputs=[filename_dropdown], outputs=[workflow_editor])
-        filename_dropdown.input(get_filename, inputs=[filename_dropdown], outputs=[filename_input])
+        filename_dropdown.change(get_filename, inputs=[filename_dropdown], outputs=[filename_input])
         filename_dropdown.input(sync_selection, inputs=[filename_dropdown], outputs=[workflow_selector])
 
         workflow_selector.input(load_workflow, inputs=[workflow_selector], outputs=[workflow_editor])
         workflow_selector.input(get_filename, inputs=[workflow_selector], outputs=[filename_input])
         workflow_selector.input(sync_selection, inputs=[workflow_selector], outputs=[filename_dropdown])
 
+        save_button.click(validate_workflow, inputs=[workflow_editor], outputs=[json_status])
         save_button.click(save_workflow, inputs=[filename_input, workflow_editor])
 
-        refresh_button.click(refresh_files, outputs=[filename_dropdown])
-        refresh_button.click(refresh_files, outputs=[workflow_selector])
+        refresh_button.click(refresh_files, inputs=[workflow_editor, filename_dropdown], outputs=[filename_dropdown])
+        refresh_button.click(refresh_files, inputs=[workflow_editor, filename_dropdown], outputs=[workflow_selector])
 
-        save_button.click(validate_workflow, inputs=[workflow_editor], outputs=[json_status])
         validate_button.click(validate_workflow, inputs=[workflow_editor], outputs=[json_status])
 
         return workflow_editor

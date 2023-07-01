@@ -5,7 +5,7 @@ Face Editor for Stable Diffusion. This Extension is useful for the following pur
 - Changing facial expressions
 - Apply blurring or other processing
 
-![example](./images/workflow-01.jpg)
+![example](./images/v1.0.0.jpg)
 
 This is a [extension](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/Extensions) of [AUTOMATIC1111's Stable Diffusion Web UI](https://github.com/AUTOMATIC1111/stable-diffusion-webui).
 
