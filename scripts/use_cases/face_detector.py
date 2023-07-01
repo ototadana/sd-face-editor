@@ -8,5 +8,9 @@ from scripts.entities.rect import Rect
 
 class FaceDetector(ABC):
     @abstractmethod
-    def detect_faces(self, image: Image, confidence: float) -> List[Rect]:
+    def name(self) -> str:
+        pass
+
+    @abstractmethod
+    def detect_faces(self, image: Image, **kwargs) -> List[Rect]:
         pass

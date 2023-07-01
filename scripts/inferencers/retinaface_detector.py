@@ -15,7 +15,10 @@ class RetinafaceDetector(FaceDetector):
             retinaface.device = shared.device
         self.detection_model = init_detection_model("retinaface_resnet50", device=shared.device)
 
-    def detect_faces(self, image: Image, confidence: float) -> List[Rect]:
+    def name(self):
+        return "RetinaFace"
+
+    def detect_faces(self, image: Image, confidence: float, **kwargs) -> List[Rect]:
         with torch.no_grad():
             face_boxes, _ = self.detection_model.align_multi(image, confidence)
 

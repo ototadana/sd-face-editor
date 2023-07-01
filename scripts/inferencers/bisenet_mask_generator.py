@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 import cv2
 import modules.shared as shared
@@ -6,18 +6,35 @@ import numpy as np
 import torch
 from facexlib.parsing import init_parsing_model
 from facexlib.utils.misc import img2tensor
-from PIL import Image
 from torchvision.transforms.functional import normalize
 
+from scripts.inferencers.vignette_mask_generator import VignetteMaskGenerator
 from scripts.use_cases.mask_generator import MaskGenerator
 
 
 class BiSeNetMaskGenerator(MaskGenerator):
     def __init__(self) -> None:
         self.mask_model = init_parsing_model(device=shared.device)
+        self.fallback_mask_generator = VignetteMaskGenerator()
 
-    def generate_mask(self, face_image: Image, mask_size: int, affected_areas: List[str]) -> np.ndarray:
-        face_image = np.array(face_image)
+    def name(self):
+        return "BiSeNet"
+
+    def generate_mask(
+        self,
+        face_image: np.ndarray,
+        face_area_on_image: Tuple[int, int, int, int],
+        affected_areas: List[str],
+        mask_size: int,
+        use_minimal_area: bool,
+        fallback_ratio: float = 0.25,
+        **kwargs,
+    ) -> np.ndarray:
+        face_image = face_image.copy()
+
+        if use_minimal_area:
+            face_image = MaskGenerator.mask_non_face_areas(face_image, face_area_on_image)
+
         h, w, _ = face_image.shape
 
         if w != 512 or h != 512:
@@ -40,6 +57,9 @@ class BiSeNetMaskGenerator(MaskGenerator):
 
         if w != 512 or h != 512:
             mask = cv2.resize(mask, dsize=(w, h))
+
+        if MaskGenerator.calculate_mask_coverage(mask) < fallback_ratio:
+            mask = self.fallback_mask_generator.generate_mask(face_image, face_area_on_image, use_minimal_area)
 
         return mask
 

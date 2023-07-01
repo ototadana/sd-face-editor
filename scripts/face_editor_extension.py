@@ -1,10 +1,10 @@
 import modules.scripts as scripts
-
 from modules import shared
+
 from scripts.entities.option import Option
-from scripts.inferencers.factory import InferencerFactory
 from scripts.ui.ui_builder import UiBuilder
 from scripts.use_cases.image_processor import ImageProcessor
+from scripts.use_cases.workflow_manager import WorkflowManager
 
 
 class FaceEditorExtension(scripts.Script):
@@ -30,7 +30,7 @@ class FaceEditorExtension(scripts.Script):
         option = Option(*args)
         if not option.save_original_image:
             p.do_not_save_samples = True
-                
+
         if p.scripts is not None and hasattr(p.scripts, "alwayson_scripts"):
             script_index = shared.opts.data.get("face_editor_script_index", 99)
             for i, e in enumerate(p.scripts.alwayson_scripts):
@@ -50,7 +50,7 @@ class FaceEditorExtension(scripts.Script):
             self.__is_running = True
 
             o.do_not_save_samples = False
-            ImageProcessor(InferencerFactory.create()).proc_images(o, res, option)
+            ImageProcessor(WorkflowManager.get(option.workflow)).proc_images(o, res, option)
 
         finally:
             self.__is_running = False

@@ -1,7 +1,7 @@
 import os
 import tempfile
 from operator import attrgetter
-from typing import List, Tuple
+from typing import List
 
 import cv2
 import modules.images as images
@@ -20,15 +20,15 @@ from PIL import Image
 from scripts.entities.face import Face
 from scripts.entities.option import Option
 from scripts.entities.rect import Rect
-from scripts.use_cases.inferencer_registry import InferencerRegistry
+from scripts.use_cases.mask_generator import MaskGenerator
+from scripts.use_cases.workflow_manager import WorkflowManager
 
 os.makedirs(os.path.join(tempfile.gettempdir(), "gradio"), exist_ok=True)
 
 
 class ImageProcessor:
-    def __init__(self, inferencers: InferencerRegistry) -> None:
-        self.face_detector = inferencers.face_detector
-        self.mask_generator = inferencers.mask_generator
+    def __init__(self, workflow: WorkflowManager) -> None:
+        self.workflow = workflow
 
     def proc_images(self, o: StableDiffusionProcessing, res: Processed, option: Option):
         edited_images, all_seeds, all_prompts, infotexts = [], [], [], []
@@ -83,16 +83,16 @@ class ImageProcessor:
         p.width, p.height = image.size
         p.sample = sample
 
-    def proc_image(self, p: StableDiffusionProcessingImg2Img, option: Option, pre_proc_image: Image = None) -> Processed:
+    def proc_image(
+        self, p: StableDiffusionProcessingImg2Img, option: Option, pre_proc_image: Image = None
+    ) -> Processed:
         params = option.to_dict()
 
         if hasattr(p.init_images[0], "mode") and p.init_images[0].mode != "RGB":
             p.init_images[0] = p.init_images[0].convert("RGB")
 
         entire_image = np.array(p.init_images[0])
-        faces = self.__crop_face(
-            p.init_images[0], option.face_margin, option.confidence, option.face_size, option.ignore_larger_faces
-        )
+        faces = self.__crop_face(p.init_images[0], option)
         faces = faces[: option.max_face_count]
         faces = sorted(faces, key=attrgetter("center"))
         entire_mask_image = np.zeros_like(entire_image)
@@ -116,53 +116,47 @@ class ImageProcessor:
 
         wildcards_script = self.__get_wildcards_script(p)
         face_prompts = self.__get_face_prompts(len(faces), option.prompt_for_face, entire_prompt)
-        face_prompt_index = 0
 
         if not option.apply_scripts_to_faces:
             p.scripts = None
 
-        for face in faces:
+        for i, face in enumerate(faces):
             if shared.state.interrupted:
                 break
 
-            p.init_images = [face.image]
-            p.width = face.image.width
-            p.height = face.image.height
-            p.denoising_strength = option.strength1
-            p.prompt = face_prompts[face_prompt_index]
+            p.prompt = face_prompts[i]
             if wildcards_script is not None:
-                p.prompt = self.__apply_wildcards(wildcards_script, p.prompt, face_prompt_index)
-            face_prompt_index += 1
-            print(f"prompt for the face: {p.prompt}")
+                p.prompt = self.__apply_wildcards(wildcards_script, p.prompt, i)
 
-            p.do_not_save_samples = True
+            jobs = self.workflow.select_jobs(faces, i, entire_width, entire_height)
 
-            proc = process_images(p)
+            if len(jobs) == 0:
+                continue
 
-            if proc.images[0].mode != "RGB":
-                proc.images[0] = proc.images[0].convert("RGB")
+            proc_image = self.workflow.process(jobs, face, p, option)
+            if proc_image is None:
+                continue
 
-            face_image = np.array(proc.images[0])
-            if option.use_minimal_area:
-                face_image_for_mask = self.__mask_non_face_areas(face_image, face.face_area_on_image)
-            else:
-                face_image_for_mask = face_image
+            if proc_image.mode != "RGB":
+                proc_image = proc_image.convert("RGB")
 
-            mask_image = self.mask_generator.generate_mask(face_image_for_mask, option.mask_size, option.affected_areas)
-
-            if option.mask_blur > 0:
-                mask_image = cv2.blur(mask_image, (option.mask_blur, option.mask_blur))
+            face_image = np.array(proc_image)
+            mask_image = self.workflow.generate_mask(jobs, face_image, face, option)
 
             if option.show_intermediate_steps:
                 feature = self.__get_feature(p.prompt, entire_prompt)
-                mask_info = f"size:{option.mask_size}, blur:{option.mask_blur}"
-                output_images.append(Image.fromarray(self.__add_comment(face_image, feature)))
+                coverage = MaskGenerator.calculate_mask_coverage(mask_image) * 100
+                mask_info = f"size:{option.mask_size}, blur:{option.mask_blur}, cov:{coverage:.0f}%"
+                tag = f"{face.face_area.tag} ({face.face_area.width}x{face.face_area.height})"
+                output_images.append(
+                    Image.fromarray(self.__add_comment(self.__add_comment(face_image, feature), tag, True))
+                )
                 output_images.append(
                     Image.fromarray(self.__add_comment(self.__to_masked_image(mask_image, face_image), mask_info))
                 )
 
-            face_image = cv2.resize(face_image, dsize=(face.width, face.height))
-            mask_image = cv2.resize(mask_image, dsize=(face.width, face.height))
+            face_image = cv2.resize(face_image, dsize=(face.width, face.height), interpolation=cv2.INTER_AREA)
+            mask_image = cv2.resize(mask_image, dsize=(face.width, face.height), interpolation=cv2.INTER_AREA)
 
             if option.use_minimal_area:
                 l, t, r, b = face.face_area.to_tuple()
@@ -238,13 +232,14 @@ class ImageProcessor:
             return ""
         return prompt.replace(entire_prompt, "")
 
-    def __add_comment(self, image: np.ndarray, comment: str) -> np.ndarray:
+    def __add_comment(self, image: np.ndarray, comment: str, top: bool = False) -> np.ndarray:
         image = np.copy(image)
         h, _, _ = image.shape
+        pos = (10, 48) if top else (10, h - 16)
         cv2.putText(
             image,
             text=comment,
-            org=(10, h - 16),
+            org=pos,
             fontFace=cv2.FONT_HERSHEY_SIMPLEX,
             fontScale=1.2,
             color=(0, 0, 0),
@@ -253,7 +248,7 @@ class ImageProcessor:
         cv2.putText(
             image,
             text=comment,
-            org=(10, h - 16),
+            org=pos,
             fontFace=cv2.FONT_HERSHEY_SIMPLEX,
             fontScale=1.2,
             color=(255, 255, 255),
@@ -314,14 +309,12 @@ class ImageProcessor:
         infos.extend([infos[0]] * (image_count - len(infos)))
 
     def __to_masked_image(self, mask_image: np.ndarray, image: np.ndarray) -> np.ndarray:
-        gray_mask = np.where(mask_image == 0, 47, 255) / 255.0
+        gray_mask = mask_image / 255.0
         return (image * gray_mask).astype("uint8")
 
-    def __crop_face(
-        self, image: Image, face_margin: float, confidence: float, face_size: int, ignore_larger_faces: bool
-    ) -> List[Face]:
-        face_areas = self.face_detector.detect_faces(image, confidence)
-        return self.__crop(image, face_areas, face_margin, face_size, ignore_larger_faces)
+    def __crop_face(self, image: Image, option: Option) -> List[Face]:
+        face_areas = self.workflow.detect_faces(image, option)
+        return self.__crop(image, face_areas, option.face_margin, option.face_size, option.ignore_larger_faces)
 
     def __crop(
         self, image: Image, face_areas: List[Rect], face_margin: float, face_size: int, ignore_larger_faces: bool
@@ -336,12 +329,3 @@ class ImageProcessor:
             areas.append(face)
 
         return sorted(areas, key=attrgetter("height"), reverse=True)
-
-    def __mask_non_face_areas(self, image: np.ndarray, face_area_on_image: Tuple[int, int, int, int]):
-        left, top, right, bottom = face_area_on_image
-        image = image.copy()
-        image[:top, :] = 0
-        image[bottom:, :] = 0
-        image[:, :left] = 0
-        image[:, right:] = 0
-        return image

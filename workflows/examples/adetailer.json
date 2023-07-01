@@ -1,0 +1,19 @@
+{
+    "face_detector": [
+        {
+            "name": "YOLO",
+            "params": {
+                "repo_id": "Bingsu/adetailer",
+                "filename": "face_yolov8n.pt"
+            }
+        }
+    ],
+    "rules": [
+        {
+            "then": {
+                "face_processor": "img2img",
+                "mask_generator": "BiSeNet"
+            }
+        }
+    ]
+}

@@ -1,7 +1,11 @@
-import gradio as gr
+import os
 
-from modules import shared, script_callbacks
+import gradio as gr
+from modules import script_callbacks, shared
+
 from scripts.entities.option import Option
+from scripts.io.util import inferencers_dir
+from scripts.ui import workflow_editor
 from scripts.ui.param_value_parser import ParamValueParser
 
 
@@ -13,23 +17,28 @@ class UiBuilder:
     def build(self, is_img2img: bool):
         if self.__for_extension:
             with gr.Accordion("Face Editor", open=False, elem_id="sd-face-editor-extension"):
-                enabled = gr.Checkbox(label="Enabled", value=False)
-                components = [enabled] + self.__build(is_img2img)
+                with gr.Row():
+                    enabled = gr.Checkbox(label="Enabled", value=False)
+                    workflow_selector = self.__create_workflow_selector()
+                components = [enabled] + self.__build(workflow_selector)
                 self.infotext_fields.append((enabled, Option.add_prefix("enabled")))
                 return components
         else:
-            return self.__build(is_img2img)
+            return self.__build(self.__create_workflow_selector())
 
-    def __build(self, is_img2img: bool):
+    def __create_workflow_selector(self) -> gr.Dropdown:
+        return gr.Dropdown(choices=workflow_editor.get_files(), label="Workflow", value="default", show_label=True)
+
+    def __build(self, workflow_selector: gr.Dropdown):
         use_minimal_area = gr.Checkbox(
             label="Use minimal area (for close faces)", value=Option.DEFAULT_USE_MINIMAL_AREA
         )
         self.infotext_fields.append((use_minimal_area, Option.add_prefix("use_minimal_area")))
 
-        with gr.Row():
-            save_original_image = gr.Checkbox(label="Save original image", value=Option.DEFAULT_SAVE_ORIGINAL_IMAGE)
-            self.infotext_fields.append((save_original_image, Option.add_prefix("save_original_image")))
+        save_original_image = gr.Checkbox(label="Save original image", value=Option.DEFAULT_SAVE_ORIGINAL_IMAGE)
+        self.infotext_fields.append((save_original_image, Option.add_prefix("save_original_image")))
 
+        with gr.Row():
             show_original_image = gr.Checkbox(label="Show original image", value=Option.DEFAULT_SHOW_ORIGINAL_IMAGE)
             self.infotext_fields.append((show_original_image, Option.add_prefix("show_original_image")))
 
@@ -130,6 +139,10 @@ class UiBuilder:
                 )
                 self.infotext_fields.append((strength2, Option.add_prefix("strength2")))
 
+        with gr.Accordion("Workflow Editor", open=False):
+            workflow = workflow_editor.build(workflow_selector)
+            self.infotext_fields.append((workflow, Option.add_prefix("workflow")))
+
         return [
             face_margin,
             confidence,
@@ -148,12 +161,42 @@ class UiBuilder:
             ignore_larger_faces,
             affected_areas,
             show_original_image,
+            workflow,
         ]
 
 
 def on_ui_settings():
-    section = ('face_editor', "Face Editor")
-    shared.opts.add_option("face_editor_script_index", shared.OptionInfo(99, "Script Execution Position Index(0 means the first, 99 means the last script to execute, etc.)", gr.Slider, {"minimum": 0, "maximum": 99, "step": 1}, section=section))
+    section = ("face_editor", "Face Editor")
+
+    shared.opts.add_option(
+        "face_editor_search_subdirectories",
+        shared.OptionInfo(False, "Search workflows in subdirectories", gr.Checkbox, section=section),
+    )
+
+    additional_components = []
+    with os.scandir(inferencers_dir) as entries:
+        for entry in entries:
+            if entry.is_dir() and entry.name[0].isalnum():
+                additional_components.append(entry.name)
+
+    shared.opts.add_option(
+        "face_editor_additional_components",
+        shared.OptionInfo(
+            [], "Additional components", gr.CheckboxGroup, {"choices": additional_components}, section=section
+        ),
+    )
+
+    shared.opts.add_option(
+        "face_editor_script_index",
+        shared.OptionInfo(
+            99,
+            "The position in postprocess at which this script will be executed; "
+            "0 means it will be executed before any scripts, 99 means it will probably be executed last.",
+            gr.Slider,
+            {"minimum": 0, "maximum": 99, "step": 1},
+            section=section,
+        ),
+    )
 
 
 script_callbacks.on_ui_settings(on_ui_settings)

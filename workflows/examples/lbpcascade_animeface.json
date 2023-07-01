@@ -1,0 +1,14 @@
+{
+    "face_detector": "lbpcascade_animeface",
+    "rules": {
+        "then": {
+            "face_processor": "img2img",
+            "mask_generator": {
+                "name": "BiSeNet",
+                "params": {
+                    "fallback_ratio": 0.3
+                }
+            }
+        }
+    }
+}
