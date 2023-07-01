@@ -7,7 +7,7 @@
             },
             "then": {
                 "face_processor": "img2img",
-                "mask_generator": "bisenet"
+                "mask_generator": "BiSeNet"
             }
         },
         {

@@ -3,6 +3,7 @@ import os
 from typing import List
 
 import gradio as gr
+from modules import shared
 from pydantic import ValidationError
 
 from scripts.io.util import workflows_dir
@@ -37,7 +38,16 @@ def save_workflow(name: str, workflow: str) -> str:
 
 
 def get_files() -> List[str]:
-    return [f.split(".")[0] for f in os.listdir(workflows_dir) if f.endswith(".json")]
+    search_subdirectories = shared.opts.data.get("face_editor_search_subdirectories", False)
+    files = []
+    for root, _, filenames in os.walk(workflows_dir):
+        if not search_subdirectories and not os.path.samefile(root, workflows_dir):
+            continue
+        for filename in filenames:
+            if filename.endswith(".json"):
+                relative_path, _ = os.path.splitext(os.path.relpath(os.path.join(root, filename), workflows_dir))
+                files.append(relative_path)
+    return files
 
 
 def refresh_files() -> dict:

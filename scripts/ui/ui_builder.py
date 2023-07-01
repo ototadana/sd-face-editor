@@ -5,7 +5,7 @@ from modules import script_callbacks, shared
 
 from scripts.entities.option import Option
 from scripts.io.util import inferencers_dir
-from scripts.ui import workflow as workflow_ui
+from scripts.ui import workflow_editor
 from scripts.ui.param_value_parser import ParamValueParser
 
 
@@ -27,7 +27,7 @@ class UiBuilder:
             return self.__build(self.__create_workflow_selector())
 
     def __create_workflow_selector(self) -> gr.Dropdown:
-        return gr.Dropdown(choices=workflow_ui.get_files(), label="Workflow", value="default", show_label=True)
+        return gr.Dropdown(choices=workflow_editor.get_files(), label="Workflow", value="default", show_label=True)
 
     def __build(self, workflow_selector: gr.Dropdown):
         use_minimal_area = gr.Checkbox(
@@ -140,7 +140,7 @@ class UiBuilder:
                 self.infotext_fields.append((strength2, Option.add_prefix("strength2")))
 
         with gr.Accordion("Workflow Editor", open=False):
-            workflow = workflow_ui.build(workflow_selector)
+            workflow = workflow_editor.build(workflow_selector)
             self.infotext_fields.append((workflow, Option.add_prefix("workflow")))
 
         return [
@@ -168,6 +168,11 @@ class UiBuilder:
 def on_ui_settings():
     section = ("face_editor", "Face Editor")
 
+    shared.opts.add_option(
+        "face_editor_search_subdirectories",
+        shared.OptionInfo(False, "Search workflows in subdirectories", gr.Checkbox, section=section),
+    )
+
     additional_components = []
     with os.scandir(inferencers_dir) as entries:
         for entry in entries:
@@ -177,7 +182,7 @@ def on_ui_settings():
     shared.opts.add_option(
         "face_editor_additional_components",
         shared.OptionInfo(
-            [], "Additional Components", gr.CheckboxGroup, {"choices": additional_components}, section=section
+            [], "Additional components", gr.CheckboxGroup, {"choices": additional_components}, section=section
         ),
     )
 

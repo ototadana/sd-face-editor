@@ -1,5 +1,10 @@
 {
-    "face_detector": "YOLO",
+    "face_detector": {
+        "name": "YOLO",
+        "params": {
+            "path": "yolov8n.pt"
+        }
+    },
     "rules": {
         "then": {
             "face_processor": "img2img",
