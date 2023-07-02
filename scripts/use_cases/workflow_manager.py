@@ -5,7 +5,7 @@ import numpy as np
 from modules.processing import StableDiffusionProcessingImg2Img
 from PIL import Image
 
-from scripts.entities.definitions import Condition, Job, Workflow
+from scripts.entities.definitions import Condition, Job, Rule, Workflow
 from scripts.entities.face import Face
 from scripts.entities.option import Option
 from scripts.entities.rect import Rect
@@ -44,20 +44,20 @@ class WorkflowManager:
 
         return results
 
-    def select_jobs(self, faces: List[Face], index: int, width: int, height: int) -> List[Job]:
+    def select_rule(self, faces: List[Face], index: int, width: int, height: int) -> Rule:
         if faces[index].face_area is None:
-            return []
+            return None
 
         for rule in self.workflow.rules:
             if rule.when is None:
-                return rule.then
+                return rule
 
             if self.__is_tag_match(rule.when, faces[index]) and self.__is_criteria_match(
                 rule.when, faces, index, width, height
             ):
-                return rule.then
+                return rule
 
-        return []
+        return None
 
     def __is_tag_match(self, condition: Condition, face: Face) -> bool:
         if condition.tag is None or len(condition.tag) == 0:

@@ -23,6 +23,7 @@ class Option:
     DEFAULT_IGNORE_LARGER_FACES = True
     DEFAULT_AFFECTED_AREAS = ["Face"]
     DEFAULT_WORKFLOW = open(os.path.join(workflows_dir, "default.json")).read()
+    DEFAULT_UPSCALER = "None"
 
     def __init__(self, *args) -> None:
         self.extra_options: Dict[str, Dict[str, str]] = {}
@@ -44,6 +45,7 @@ class Option:
         self.affected_areas = Option.DEFAULT_AFFECTED_AREAS
         self.show_original_image = Option.DEFAULT_SHOW_ORIGINAL_IMAGE
         self.workflow = Option.DEFAULT_WORKFLOW
+        self.upscaler = Option.DEFAULT_UPSCALER
 
         if len(args) > 0 and isinstance(args[0], dict):
             self.update_by_dict(args[0])
@@ -78,6 +80,7 @@ class Option:
         self.affected_areas = args[15] if arg_len > 15 and isinstance(args[15], list) else self.affected_areas
         self.show_original_image = args[16] if arg_len > 16 and isinstance(args[16], bool) else self.show_original_image
         self.workflow = args[17] if arg_len > 17 and isinstance(args[17], str) else self.workflow
+        self.upscaler = args[18] if arg_len > 18 and isinstance(args[18], str) else self.upscaler
 
     def update_by_dict(self, params: dict) -> None:
         self.face_margin = params.get("face_margin", self.face_margin)
@@ -98,6 +101,7 @@ class Option:
         self.affected_areas = params.get("affected_areas", self.affected_areas)
         self.show_original_image = params.get("show_original_image", self.show_original_image)
         self.workflow = params.get("workflow", self.workflow)
+        self.upscaler = params.get("upscaler", self.upscaler)
 
         for k, v in params.items():
             if isinstance(v, dict):
@@ -121,6 +125,7 @@ class Option:
             Option.add_prefix("ignore_larger_faces"): self.ignore_larger_faces,
             Option.add_prefix("affected_areas"): str.join(";", self.affected_areas),
             Option.add_prefix("workflow"): self.workflow,
+            Option.add_prefix("upscaler"): self.upscaler,
         }
 
         for option_group_name, options in self.extra_options.items():

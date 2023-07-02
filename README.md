@@ -353,7 +353,7 @@ The `Blur` face processor is employed here, which, as the name suggests, applies
 As a result, the entire area of each detected face gets blurred. This can be useful in situations where you need to anonymize faces in images for privacy reasons.
 
 
-#### Example 6: Different Processing Based on Face Position
+### Example 6: Different Processing Based on Face Position
 
 This workflow employs the `RetinaFace` face detector and applies different processing depending on the position of the detected faces in the image. 
 
