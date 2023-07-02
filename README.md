@@ -209,6 +209,9 @@ Ignore if the size of the detected face is larger than the size specified in "Si
 
 For more information, please see: [here](https://github.com/ototadana/sd-face-editor/issues/65).
 
+##### Upscaler
+Select the upscaler to be used to scale the face image.
+
 #### Step 3. Recreate the Faces
 ##### Denoising strength for face images (0.1-0.8)
 Denoising strength for generating a new face.
