@@ -108,6 +108,16 @@ class UiBuilder:
                 )
                 self.infotext_fields.append((ignore_larger_faces, Option.add_prefix("ignore_larger_faces")))
 
+                upscalers = [upscaler.name for upscaler in shared.sd_upscalers]
+                if Option.DEFAULT_UPSCALER not in upscalers:
+                    upscalers.append(Option.DEFAULT_UPSCALER)
+                upscaler = gr.Dropdown(
+                    label="Upscaler",
+                    choices=[upscaler.name for upscaler in shared.sd_upscalers],
+                    value=Option.DEFAULT_UPSCALER,
+                )
+                self.infotext_fields.append((upscaler, Option.add_prefix("upscaler")))
+
             with gr.Accordion("(3) Recreate the Faces", open=False):
                 strength1 = gr.Slider(
                     minimum=0.1,
@@ -162,6 +172,7 @@ class UiBuilder:
             affected_areas,
             show_original_image,
             workflow,
+            upscaler,
         ]
 
 

@@ -1,12 +1,14 @@
 import cv2
 import numpy as np
+from modules import images
 from PIL import Image
 
+from scripts.entities.option import Option
 from scripts.entities.rect import Rect
 
 
 class Face:
-    def __init__(self, entire_image: np.ndarray, face_area: Rect, face_margin: float, face_size: int):
+    def __init__(self, entire_image: np.ndarray, face_area: Rect, face_margin: float, face_size: int, upscaler: str):
         self.face_area = face_area
         self.center = face_area.center
         left, top, right, bottom = face_area.to_square()
@@ -18,7 +20,7 @@ class Face:
         self.width = self.right - self.left
         self.height = self.bottom - self.top
 
-        self.image = self.__crop_face_image(entire_image, face_size)
+        self.image = self.__crop_face_image(entire_image, face_size, upscaler)
         self.face_area_on_image = self.__get_face_area_on_image(face_size)
 
     def __get_face_area_on_image(self, face_size: int):
@@ -30,9 +32,12 @@ class Face:
             int((self.face_area.bottom - self.top) * scaleFactor),
         )
 
-    def __crop_face_image(self, entire_image: np.ndarray, face_size: int):
+    def __crop_face_image(self, entire_image: np.ndarray, face_size: int, upscaler: str):
         cropped = entire_image[self.top : self.bottom, self.left : self.right, :]
-        return Image.fromarray(cv2.resize(cropped, dsize=(face_size, face_size)))
+        if upscaler and upscaler != Option.DEFAULT_UPSCALER:
+            return images.resize_image(0, Image.fromarray(cropped), face_size, face_size, upscaler)
+        else:
+            return Image.fromarray(cv2.resize(cropped, dsize=(face_size, face_size)))
 
     def __ensure_margin(self, left: int, top: int, right: int, bottom: int, entire_image: np.ndarray, margin: float):
         entire_height, entire_width = entire_image.shape[:2]

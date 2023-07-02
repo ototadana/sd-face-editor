@@ -128,10 +128,14 @@ class ImageProcessor:
             if wildcards_script is not None:
                 p.prompt = self.__apply_wildcards(wildcards_script, p.prompt, i)
 
-            jobs = self.workflow.select_jobs(faces, i, entire_width, entire_height)
+            rule = self.workflow.select_rule(faces, i, entire_width, entire_height)
 
-            if len(jobs) == 0:
+            if rule is None or len(rule.then) == 0:
                 continue
+            jobs = rule.then
+
+            if option.show_intermediate_steps:
+                original_face = np.array(face.image.copy())
 
             proc_image = self.workflow.process(jobs, face, p, option)
             if proc_image is None:
@@ -144,13 +148,20 @@ class ImageProcessor:
             mask_image = self.workflow.generate_mask(jobs, face_image, face, option)
 
             if option.show_intermediate_steps:
+                tag = f"{face.face_area.tag} ({face.face_area.width}x{face.face_area.height})"
+                upscaler_name = option.upscaler if option.upscaler != Option.DEFAULT_UPSCALER else ""
+                output_images.append(
+                    Image.fromarray(self.__add_comment(self.__add_comment(original_face, upscaler_name), tag, True))
+                )
+
                 feature = self.__get_feature(p.prompt, entire_prompt)
+                criteria = rule.when.criteria if rule.when is not None and rule.when.criteria is not None else ""
+                output_images.append(
+                    Image.fromarray(self.__add_comment(self.__add_comment(face_image, feature), criteria, True))
+                )
+
                 coverage = MaskGenerator.calculate_mask_coverage(mask_image) * 100
                 mask_info = f"size:{option.mask_size}, blur:{option.mask_blur}, cov:{coverage:.0f}%"
-                tag = f"{face.face_area.tag} ({face.face_area.width}x{face.face_area.height})"
-                output_images.append(
-                    Image.fromarray(self.__add_comment(self.__add_comment(face_image, feature), tag, True))
-                )
                 output_images.append(
                     Image.fromarray(self.__add_comment(self.__to_masked_image(mask_image, face_image), mask_info))
                 )
@@ -314,16 +325,24 @@ class ImageProcessor:
 
     def __crop_face(self, image: Image, option: Option) -> List[Face]:
         face_areas = self.workflow.detect_faces(image, option)
-        return self.__crop(image, face_areas, option.face_margin, option.face_size, option.ignore_larger_faces)
+        return self.__crop(
+            image, face_areas, option.face_margin, option.face_size, option.ignore_larger_faces, option.upscaler
+        )
 
     def __crop(
-        self, image: Image, face_areas: List[Rect], face_margin: float, face_size: int, ignore_larger_faces: bool
+        self,
+        image: Image,
+        face_areas: List[Rect],
+        face_margin: float,
+        face_size: int,
+        ignore_larger_faces: bool,
+        upscaler: str,
     ) -> List[Face]:
         image = np.array(image, dtype=np.uint8)
 
         areas: List[Face] = []
         for face_area in face_areas:
-            face = Face(image, face_area, face_margin, face_size)
+            face = Face(image, face_area, face_margin, face_size, upscaler)
             if ignore_larger_faces and face.width > face_size:
                 continue
             areas.append(face)
