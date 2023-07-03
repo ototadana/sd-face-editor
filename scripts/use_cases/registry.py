@@ -13,7 +13,7 @@ def create(all_classes, type: str) -> Dict:
             c = cls()
             d[c.name().lower()] = c
         except Exception as e:
-            print(f"Face Editor: Error: {e}")
+            print(f"Face Editor: {cls}, Error: {e}")
     return d
 
 
