@@ -21,6 +21,7 @@ from scripts.entities.face import Face
 from scripts.entities.option import Option
 from scripts.entities.rect import Rect
 from scripts.use_cases.mask_generator import MaskGenerator
+from scripts.use_cases.registry import face_processors
 from scripts.use_cases.workflow_manager import WorkflowManager
 
 os.makedirs(os.path.join(tempfile.gettempdir(), "gradio"), exist_ok=True)
@@ -107,12 +108,15 @@ class ImageProcessor:
         if shared.state.job_count == -1:
             shared.state.job_count = len(faces) + 1
 
+        output_images = []
+        if option.show_intermediate_steps:
+            output_images.append(self.__show_detected_faces(np.copy(entire_image), faces, p))
+
         print(f"number of faces: {len(faces)}")
         if len(faces) == 0 and pre_proc_image is not None:
             return Processed(
                 p, images_list=[pre_proc_image], all_prompts=[p.prompt], all_seeds=[p.seed], infotexts=[""]
             )
-        output_images = []
 
         wildcards_script = self.__get_wildcards_script(p)
         face_prompts = self.__get_face_prompts(len(faces), option.prompt_for_face, entire_prompt)
@@ -227,6 +231,17 @@ class ImageProcessor:
         self.__extend_infos(proc.infotexts, len(proc.images))
 
         return proc
+
+    def __show_detected_faces(self, entire_image: np.ndarray, faces: List[Face], p: StableDiffusionProcessingImg2Img):
+        processor = face_processors.get("debug")
+        for face in faces:
+            face_image = np.array(processor.process(face, p))
+            face_image = cv2.resize(face_image, dsize=(face.width, face.height), interpolation=cv2.INTER_AREA)
+            entire_image[
+                face.top : face.bottom,
+                face.left : face.right,
+            ] = face_image
+        return self.__add_comment(entire_image, f"{len(faces)}")
 
     def __get_wildcards_script(self, p: StableDiffusionProcessingImg2Img):
         if p.scripts is None:
