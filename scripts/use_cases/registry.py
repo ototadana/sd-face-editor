@@ -1,3 +1,4 @@
+import traceback
 from typing import Dict
 
 from scripts.io.util import load_classes_from_directory
@@ -13,6 +14,7 @@ def create(all_classes, type: str) -> Dict:
             c = cls()
             d[c.name().lower()] = c
         except Exception as e:
+            print(traceback.format_exc())
             print(f"Face Editor: {cls}, Error: {e}")
     return d
 
