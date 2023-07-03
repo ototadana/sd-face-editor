@@ -1,3 +1,5 @@
+import traceback
+
 from modules import shared
 
 from scripts.io.util import load_classes_from_directory
@@ -8,4 +10,5 @@ for component in shared.opts.data.get("face_editor_additional_components", []):
         try:
             cls().install()
         except Exception as e:
+            print(traceback.format_exc())
             print(f"Face Editor: {e}")
