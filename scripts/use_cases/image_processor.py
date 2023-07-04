@@ -113,7 +113,14 @@ class ImageProcessor:
             output_images.append(self.__show_detected_faces(np.copy(entire_image), faces, p))
 
         print(f"number of faces: {len(faces)}")
-        if len(faces) == 0 and pre_proc_image is not None:
+        if (
+            len(faces) == 0
+            and pre_proc_image is not None
+            and (
+                option.save_original_image
+                or not shared.opts.data.get("face_editor_save_original_on_detection_fail", False)
+            )
+        ):
             return Processed(
                 p, images_list=[pre_proc_image], all_prompts=[p.prompt], all_seeds=[p.seed], infotexts=[""]
             )
