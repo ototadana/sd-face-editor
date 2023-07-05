@@ -1,3 +1,5 @@
+from typing import Union
+
 from modules.processing import StableDiffusionProcessingImg2Img, process_images
 from PIL import Image
 
@@ -13,7 +15,7 @@ class Img2ImgFaceProcessor(FaceProcessor):
         self,
         face: Face,
         p: StableDiffusionProcessingImg2Img,
-        strength1: float | int,
+        strength1: Union[float, int],
         pp: str = "",
         np: str = "",
         **kwargs,
