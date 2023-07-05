@@ -17,6 +17,7 @@ from modules.processing import (
 )
 from PIL import Image
 
+from scripts.entities.definitions import Rule
 from scripts.entities.face import Face
 from scripts.entities.option import Option
 from scripts.entities.rect import Rect
@@ -159,22 +160,9 @@ class ImageProcessor:
             mask_image = self.workflow.generate_mask(jobs, face_image, face, option)
 
             if option.show_intermediate_steps:
-                tag = f"{face.face_area.tag} ({face.face_area.width}x{face.face_area.height})"
-                upscaler_name = option.upscaler if option.upscaler != Option.DEFAULT_UPSCALER else ""
-                output_images.append(
-                    Image.fromarray(self.__add_comment(self.__add_comment(original_face, upscaler_name), tag, True))
-                )
-
                 feature = self.__get_feature(p.prompt, entire_prompt)
-                criteria = rule.when.criteria if rule.when is not None and rule.when.criteria is not None else ""
-                output_images.append(
-                    Image.fromarray(self.__add_comment(self.__add_comment(face_image, feature), criteria, True))
-                )
-
-                coverage = MaskGenerator.calculate_mask_coverage(mask_image) * 100
-                mask_info = f"size:{option.mask_size}, blur:{option.mask_blur}, cov:{coverage:.0f}%"
-                output_images.append(
-                    Image.fromarray(self.__add_comment(self.__to_masked_image(mask_image, face_image), mask_info))
+                self.__add_debug_image(
+                    output_images, face, original_face, face_image, mask_image, rule, option, feature
                 )
 
             face_image = cv2.resize(face_image, dsize=(face.width, face.height), interpolation=cv2.INTER_AREA)
@@ -238,6 +226,47 @@ class ImageProcessor:
         self.__extend_infos(proc.infotexts, len(proc.images))
 
         return proc
+
+    def __add_debug_image(
+        self,
+        output_images: list,
+        face: Face,
+        original_face: np.ndarray,
+        face_image: np.ndarray,
+        mask_image: np.ndarray,
+        rule: Rule,
+        option: Option,
+        feature: str,
+    ):
+        h, w = original_face.shape[:2]
+        debug_image = np.zeros_like(original_face)
+
+        tag = f"{face.face_area.tag} ({face.face_area.width}x{face.face_area.height})"
+        upscaler_name = option.upscaler if option.upscaler != Option.DEFAULT_UPSCALER else ""
+
+        def resize(img: np.ndarray):
+            return cv2.resize(img, (w // 2, h // 2))
+
+        debug_image[0 : h // 2, 0 : w // 2] = resize(
+            self.__add_comment(self.__add_comment(original_face, upscaler_name), tag, True)
+        )
+
+        criteria = rule.when.criteria if rule.when is not None and rule.when.criteria is not None else ""
+        debug_image[0 : h // 2, w // 2 :] = resize(
+            self.__add_comment(self.__add_comment(face_image, feature), criteria, True)
+        )
+
+        coverage = MaskGenerator.calculate_mask_coverage(mask_image) * 100
+        mask_info = f"size:{option.mask_size}, blur:{option.mask_blur}, cov:{coverage:.0f}%"
+        debug_image[h // 2 :, 0 : w // 2] = resize(
+            self.__add_comment(self.__to_masked_image(mask_image, face_image), mask_info)
+        )
+
+        face_fg = (face_image * (mask_image / 255.0)).astype("uint8")
+        face_bg = (original_face * (1 - (mask_image / 255.0))).astype("uint8")
+        debug_image[h // 2 :, w // 2 :] = resize(face_fg + face_bg)
+
+        output_images.append(Image.fromarray(debug_image))
 
     def __show_detected_faces(self, entire_image: np.ndarray, faces: List[Face], p: StableDiffusionProcessingImg2Img):
         processor = face_processors.get("debug")
