@@ -199,7 +199,7 @@ def on_ui_settings():
 
     shared.opts.add_option(
         "face_editor_save_original_on_detection_fail",
-        shared.OptionInfo(False, "Save original image if face detection fails", gr.Checkbox, section=section),
+        shared.OptionInfo(True, "Save original image if face detection fails", gr.Checkbox, section=section),
     )
 
     shared.opts.add_option(
