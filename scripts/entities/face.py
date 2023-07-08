@@ -1,10 +1,12 @@
+import traceback
+
 import cv2
 import numpy as np
 from modules import images
 from PIL import Image
 
 from scripts.entities.option import Option
-from scripts.entities.rect import Rect
+from scripts.entities.rect import Point, Rect
 
 
 class Face:
@@ -21,16 +23,29 @@ class Face:
         self.height = self.bottom - self.top
 
         self.image = self.__crop_face_image(entire_image, face_size, upscaler)
-        self.face_area_on_image = self.__get_face_area_on_image(face_size)
+        self.face_size = face_size
+        self.scale_factor = face_size / self.width
+        self.face_area_on_image = self.__get_face_area_on_image()
+        self.landmarks_on_image = self.__get_landmarks_on_image()
 
-    def __get_face_area_on_image(self, face_size: int):
-        scaleFactor = face_size / self.width
-        return (
-            int((self.face_area.left - self.left) * scaleFactor),
-            int((self.face_area.top - self.top) * scaleFactor),
-            int((self.face_area.right - self.left) * scaleFactor),
-            int((self.face_area.bottom - self.top) * scaleFactor),
-        )
+    def __get_face_area_on_image(self):
+        left = int((self.face_area.left - self.left) * self.scale_factor)
+        top = int((self.face_area.top - self.top) * self.scale_factor)
+        right = int((self.face_area.right - self.left) * self.scale_factor)
+        bottom = int((self.face_area.bottom - self.top) * self.scale_factor)
+        return self.__clip_values(left, top, right, bottom)
+
+    def __get_landmarks_on_image(self):
+        landmarks = []
+        if self.face_area.landmarks is not None:
+            for landmark in self.face_area.landmarks:
+                landmarks.append(
+                    Point(
+                        int((landmark.x - self.left) * self.scale_factor),
+                        int((landmark.y - self.top) * self.scale_factor),
+                    )
+                )
+        return landmarks
 
     def __crop_face_image(self, entire_image: np.ndarray, face_size: int, upscaler: str):
         cropped = entire_image[self.top : self.bottom, self.left : self.right, :]
@@ -66,3 +81,65 @@ class Face:
             right = entire_width
 
         return left, top, right, bottom
+
+    def get_angle(self) -> float:
+        landmarks = getattr(self.face_area, "landmarks", None)
+        if landmarks is None:
+            return 0
+
+        eye1 = getattr(landmarks, "eye1", None)
+        eye2 = getattr(landmarks, "eye2", None)
+        if eye2 is None or eye1 is None:
+            return 0
+
+        try:
+            dx = eye2.x - eye1.x
+            dy = eye2.y - eye1.y
+            angle = np.arctan(dy / dx) * 180 / np.pi
+
+            if dx < 0:
+                angle = angle = (angle + 180) % 360
+            return angle
+        except Exception:
+            print(traceback.format_exc())
+            return 0
+
+    def rotate_face_area_on_image(self, angle: float):
+        center = [
+            (self.face_area_on_image[0] + self.face_area_on_image[2]) / 2,
+            (self.face_area_on_image[1] + self.face_area_on_image[3]) / 2,
+        ]
+
+        points = [
+            [self.face_area_on_image[0], self.face_area_on_image[1]],
+            [self.face_area_on_image[2], self.face_area_on_image[3]],
+        ]
+
+        angle = np.radians(angle)
+        rot_matrix = np.array([[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]])
+
+        points = np.array(points) - center
+        points = np.dot(points, rot_matrix.T)
+        points += center
+        left, top, right, bottom = (int(points[0][0]), int(points[0][1]), int(points[1][0]), int(points[1][1]))
+
+        left, right = (right, left) if left > right else (left, right)
+        top, bottom = (bottom, top) if top > bottom else (top, bottom)
+
+        width, height = right - left, bottom - top
+        if width < height:
+            left, right = left - (height - width) // 2, right + (height - width) // 2
+        elif height < width:
+            top, bottom = top - (width - height) // 2, bottom + (width - height) // 2
+        return self.__clip_values(left, top, right, bottom)
+
+    def __clip_values(self, *args):
+        result = []
+        for val in args:
+            if val < 0:
+                result.append(0)
+            elif val > self.face_size:
+                result.append(self.face_size)
+            else:
+                result.append(val)
+        return tuple(result)
