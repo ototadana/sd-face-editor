@@ -2,6 +2,7 @@ from typing import List
 
 import cv2
 import numpy as np
+from modules import shared
 from modules.processing import StableDiffusionProcessingImg2Img
 from PIL import Image
 
@@ -10,6 +11,7 @@ from scripts.entities.face import Face
 from scripts.entities.option import Option
 from scripts.entities.rect import Rect
 from scripts.use_cases import registry
+from scripts.use_cases.image_processing_util import rotate_array, rotate_image
 
 
 class WorkflowManager:
@@ -32,6 +34,7 @@ class WorkflowManager:
 
     def __init__(self, workflow: Workflow) -> None:
         self.workflow = workflow
+        self.correct_tilt = shared.opts.data.get("face_editor_correct_tilt", False)
 
     def detect_faces(self, image: Image, option: Option) -> List[Rect]:
         results = []
@@ -136,7 +139,13 @@ class WorkflowManager:
             face_processor = registry.face_processors[fp.name]
             params = fp.params.copy()
             params["strength1"] = option.strength1
-            face.image = face_processor.process(face, p, **params)
+
+            angle = face.get_angle()
+            face.image = rotate_image(face.image, angle) if self.correct_tilt else face.image
+
+            image = face_processor.process(face, p, **params)
+
+            face.image = rotate_image(image, -angle) if self.correct_tilt else image
         return face.image
 
     def generate_mask(self, jobs: List[Job], face_image: np.ndarray, face: Face, option: Option) -> np.ndarray:
@@ -149,7 +158,13 @@ class WorkflowManager:
             params["use_minimal_area"] = option.use_minimal_area
             params["affected_areas"] = option.affected_areas
             params["tag"] = face.face_area.tag
-            m = mask_generator.generate_mask(face_image, face.face_area_on_image, **params)
+
+            angle = face.get_angle()
+            image = rotate_array(face_image, angle) if self.correct_tilt else face_image
+            face_area_on_image = face.rotate_face_area_on_image(angle) if self.correct_tilt else face.face_area_on_image
+            m = mask_generator.generate_mask(image, face_area_on_image, **params)
+            m = rotate_array(m, -angle) if self.correct_tilt else m
+
             if mask is None:
                 mask = m
             else:

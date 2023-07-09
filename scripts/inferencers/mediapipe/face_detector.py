@@ -4,7 +4,7 @@ import mediapipe as mp
 import numpy as np
 from PIL import Image
 
-from scripts.entities.rect import Rect
+from scripts.entities.rect import Landmarks, Point, Rect
 from scripts.use_cases.face_detector import FaceDetector
 
 
@@ -29,5 +29,14 @@ class MediaPipeFaceDetector(FaceDetector):
             top = int(relative_box.ymin * height)
             right = int(left + (relative_box.width * width))
             bottom = int(top + (relative_box.height * height))
-            rects.append(Rect(left, top, right, bottom))
+
+            keypoints = d.location_data.relative_keypoints
+
+            eye1 = Point(int(keypoints[0].x * width), int(keypoints[0].y * height))
+            eye2 = Point(int(keypoints[1].x * width), int(keypoints[1].y * height))
+            nose = Point(int(keypoints[2].x * width), int(keypoints[2].y * height))
+            mouth = Point(int(keypoints[3].x * width), int(keypoints[3].y * height))
+
+            rects.append(Rect(left, top, right, bottom, landmarks=Landmarks(eye1, eye2, nose, mouth, mouth)))
+
         return rects

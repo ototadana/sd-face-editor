@@ -46,6 +46,9 @@ class DebugProcessor(FaceProcessor):
         cv2.rectangle(overlay, (0, 0), (image.shape[1], image.shape[0]), next(color_iter), -1)
         l, t, r, b = face.face_area_on_image
         cv2.rectangle(overlay, (l, t), (r, b), (0, 0, 0), 10)
+        if face.landmarks_on_image is not None:
+            for landmark in face.landmarks_on_image:
+                cv2.circle(overlay, (int(landmark.x), int(landmark.y)), 6, (0, 0, 0), 10)
         alpha = 0.3
         output = cv2.addWeighted(image, 1 - alpha, overlay, alpha, 0)
         return Image.fromarray(output)

@@ -203,6 +203,11 @@ def on_ui_settings():
     )
 
     shared.opts.add_option(
+        "face_editor_correct_tilt",
+        shared.OptionInfo(False, "Adjust tilt for detected faces", gr.Checkbox, section=section),
+    )
+
+    shared.opts.add_option(
         "face_editor_script_index",
         shared.OptionInfo(
             99,

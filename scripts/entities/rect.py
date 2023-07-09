@@ -1,10 +1,25 @@
-from typing import Tuple
+from typing import NamedTuple, Tuple
 
 import numpy as np
 
 
+class Point(NamedTuple):
+    x: int
+    y: int
+
+
+class Landmarks(NamedTuple):
+    eye1: Point
+    eye2: Point
+    nose: Point
+    mouth1: Point
+    mouth2: Point
+
+
 class Rect:
-    def __init__(self, left: int, top: int, right: int, bottom: int, tag: str = "face") -> None:
+    def __init__(
+        self, left: int, top: int, right: int, bottom: int, tag: str = "face", landmarks: Landmarks = None
+    ) -> None:
         self.tag = tag
         self.left = left
         self.top = top
@@ -15,6 +30,7 @@ class Rect:
         self.width = right - left
         self.height = bottom - top
         self.size = self.width * self.height
+        self.landmarks = landmarks
 
     @classmethod
     def from_ndarray(cls, face_box: np.ndarray, tag: str = "face") -> "Rect":

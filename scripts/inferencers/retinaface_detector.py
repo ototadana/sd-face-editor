@@ -5,7 +5,7 @@ import torch
 from facexlib.detection import init_detection_model, retinaface
 from PIL import Image
 
-from scripts.entities.rect import Rect
+from scripts.entities.rect import Landmarks, Point, Rect
 from scripts.use_cases.face_detector import FaceDetector
 
 
@@ -20,9 +20,21 @@ class RetinafaceDetector(FaceDetector):
 
     def detect_faces(self, image: Image, confidence: float, **kwargs) -> List[Rect]:
         with torch.no_grad():
-            face_boxes, _ = self.detection_model.align_multi(image, confidence)
+            boxes_landmarks = self.detection_model.detect_faces(image, confidence)
 
         faces = []
-        for face_box in face_boxes:
-            faces.append(Rect.from_ndarray(face_box))
+        for box_landmark in boxes_landmarks:
+            face_box = box_landmark[:5]
+            landmark = box_landmark[5:]
+            face = Rect.from_ndarray(face_box)
+
+            eye1 = Point(int(landmark[0]), int(landmark[1]))
+            eye2 = Point(int(landmark[2]), int(landmark[3]))
+            nose = Point(int(landmark[4]), int(landmark[5]))
+            mouth2 = Point(int(landmark[6]), int(landmark[7]))
+            mouth1 = Point(int(landmark[8]), int(landmark[9]))
+
+            face.landmarks = Landmarks(eye1, eye2, nose, mouth1, mouth2)
+            faces.append(face)
+
         return faces
