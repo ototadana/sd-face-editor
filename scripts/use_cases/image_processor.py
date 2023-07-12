@@ -242,13 +242,15 @@ class ImageProcessor:
         debug_image = np.zeros_like(original_face)
 
         tag = f"{face.face_area.tag} ({face.face_area.width}x{face.face_area.height})"
-        upscaler_name = option.upscaler if option.upscaler != Option.DEFAULT_UPSCALER else ""
+        attributes = str(face.face_area.attributes) if face.face_area.attributes else ""
+        if not attributes:
+            attributes = option.upscaler if option.upscaler != Option.DEFAULT_UPSCALER else ""
 
         def resize(img: np.ndarray):
             return cv2.resize(img, (w // 2, h // 2))
 
         debug_image[0 : h // 2, 0 : w // 2] = resize(
-            self.__add_comment(self.__add_comment(original_face, upscaler_name), tag, True)
+            self.__add_comment(self.__add_comment(original_face, attributes), tag, True)
         )
 
         criteria = rule.when.criteria if rule.when is not None and rule.when.criteria is not None else ""
