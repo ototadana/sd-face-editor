@@ -231,6 +231,9 @@ If the value is too small, facial collapse cannot be corrected, but if it is too
 </details>
 
 
+##### Tilt adjustment threshold (0-180)
+This option defines the angle, in degrees, above which tilt correction will be automatically applied to detected faces. For instance, if set to 20, any face detected with a tilt greater than 20 degrees will be adjusted. However, if the "Adjust tilt for detected faces" option in the Face Editor section of the "Settings" tab is enabled, tilt correction will always be applied, regardless of the tilt adjustment threshold value.
+
 #### Step 4. Paste the Faces
 ##### Apply inside mask only
 Paste an image cut out in the shape of a face instead of a square image.

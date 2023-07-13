@@ -141,12 +141,21 @@ class WorkflowManager:
             params["strength1"] = option.strength1
 
             angle = face.get_angle()
-            face.image = rotate_image(face.image, angle) if self.correct_tilt else face.image
+            correct_tilt = self.__correct_tilt(option, angle)
+            face.image = rotate_image(face.image, angle) if correct_tilt else face.image
 
             image = face_processor.process(face, p, **params)
 
-            face.image = rotate_image(image, -angle) if self.correct_tilt else image
+            face.image = rotate_image(image, -angle) if correct_tilt else image
         return face.image
+
+    def __correct_tilt(self, option: Option, angle: float) -> bool:
+        if self.correct_tilt:
+            return True
+        angle = abs(angle)
+        if angle > 180:
+            angle = 360 - angle
+        return angle > option.tilt_adjustment_threshold
 
     def generate_mask(self, jobs: List[Job], face_image: np.ndarray, face: Face, option: Option) -> np.ndarray:
         mask = None
@@ -160,10 +169,11 @@ class WorkflowManager:
             params["tag"] = face.face_area.tag
 
             angle = face.get_angle()
-            image = rotate_array(face_image, angle) if self.correct_tilt else face_image
-            face_area_on_image = face.rotate_face_area_on_image(angle) if self.correct_tilt else face.face_area_on_image
+            correct_tilt = self.__correct_tilt(option, angle)
+            image = rotate_array(face_image, angle) if correct_tilt else face_image
+            face_area_on_image = face.rotate_face_area_on_image(angle) if correct_tilt else face.face_area_on_image
             m = mask_generator.generate_mask(image, face_area_on_image, **params)
-            m = rotate_array(m, -angle) if self.correct_tilt else m
+            m = rotate_array(m, -angle) if correct_tilt else m
 
             if mask is None:
                 mask = m
