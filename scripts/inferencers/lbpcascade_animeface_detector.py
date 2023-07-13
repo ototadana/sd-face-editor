@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import List, Sequence
 
 import cv2
 import numpy as np
@@ -24,7 +24,7 @@ class LbpcascadeAnimefaceDetector(FaceDetector):
         xywhs = cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=min_neighbors, minSize=(24, 24))
         return self.__xywh_to_ltrb(xywhs)
 
-    def __xywh_to_ltrb(self, xywhs: list) -> List[Rect]:
+    def __xywh_to_ltrb(self, xywhs: Sequence) -> List[Rect]:
         ltrbs = []
         for xywh in xywhs:
             x, y, w, h = xywh

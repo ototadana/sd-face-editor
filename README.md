@@ -293,141 +293,37 @@ Workflow Editor is where you can customize and experiment with various options b
 - This feature allows you to edit workflow definitions. Workflows are described in JSON format.
 - The Validation button (✅) can be clicked to check the description. If there is an error, it will be displayed in the message area to the left of the button.
 
-----
 ## Example Workflows
 
-In the following sections, we'll describe some example workflows to help you get started. Each description includes a link to the workflow's JSON definition. You can use these workflows as they are, or you can customize them to suit your needs.
-
-Details to note:
-- The [workflows/examples](workflows/examples) folder contains workflow definitions that can be used as a reference when users create their own workflows.
-- To access these example workflow definitions in the `workflows/examples` folder from the workflow list in the Workflow Editor, the "Search workflows in subdirectories" option must be enabled. This option is located in the Face Editor section of the "Settings" tab.
-- These workflow definitions can be used as they are, or you can customize them and save them under a different name for personal use.
-- Please note that some workflows require specific "Additional components" to be enabled in the Face Editor section of the "Settings" tab for them to function correctly.
+This project includes several example workflows to help you get started. Each example provides a JSON definition for a specific use case, which can be used as is or customized to suit your needs. To access these example workflows from the Workflow Editor, you need to enable the "Search workflows in subdirectories" option located in the Face Editor section of the "Settings" tab.
 
 ![Settings](images/workflow-editor-05.png)
 
-
-### Example 1: Basic Workflow - MediaPipe
-
-This workflow uses the MediaPipe face detector and applies the 'img2img' face processor and 'MediaPipe' mask generator to all detected faces.
-
-[View the workflow definition](workflows/examples/mediapipe.json)
-
-Please note that to use this workflow, the 'MediaPipe' option under "Additional components" in the Face Editor section of the "Settings" tab needs to be enabled.
-
-This is a good starting point for creating more complex workflows. You can customize this by changing the face detector or face processor, adding parameters, or adding conditions to apply different processing to different faces.
+For more details about these example workflows and how to use them, please visit the [workflows/examples/README.md](workflows/examples/README.md).
 
 
-### Example 2: Basic Workflow - YOLO Example
+## Workflow Components (Inferencers)
 
-This workflow uses the YOLO face detector and applies the 'img2img' face processor and 'YOLO' mask generator to all detected faces. 
+In this project, the components used in the workflow are also referred to as "inferencers". These inferencers are part of the process that modifies the faces in the generated images:
 
-[View the workflow definition](workflows/examples/yolov8n.json)
+1. **Face Detectors:** These components are used to identify and locate faces within an image. They provide the coordinates of the detected faces, which will be used in the following steps.
+2. **Face Processors:** Once the faces are detected and cropped, these components modify or enhance the faces.
+3. **Mask Generators:** After the faces have been processed, these components are used to create a mask. The mask defines the area of the image where the modifications made by the Face Processors will be applied.
 
-Please note that to use this workflow, the 'YOLO' option under "Additional components" in the Face Editor section of the "Settings" tab needs to be enabled. Also, you need to use a model trained for face detection, as the `yolov8n.pt` model specified here does not support face detection.
+The "General components" provide the basic functionalities for these categories, and they can be used without the need for additional software installations. On the other hand, each functionality can also be achieved by different technologies or methods, which are categorized here as "Additional components". These "Additional components" provide more advanced or specialized ways to perform the tasks of face detection, face processing, and mask generation.
 
-Like the MediaPipe workflow, this is a good starting point for creating more complex workflows. You can customize it in the same ways.
+In this project, the components used in the workflow are also referred to as "inferencers". These inferencers fall into three functional categories: Face Detectors, Face Processors, and Mask Generators.
 
+> **Note:** When using "Additional components", ensure that the features you want to use are enabled in the "Additional Components" section of the "Settings" tab under "Face Editor". For detailed descriptions and usage of each component, please refer to the corresponding README.
 
-### Example 3: High Accuracy Face Detection Workflow - Bingsu/adetailer Example
+### General components
+- [General components](scripts/inferencers/README.md)
 
-This workflow uses the YOLO face detector, but it employs a model that is actually capable of face detection. From our testing, the accuracy of this model in detecting faces is outstanding. For more details on the model, please check [Bingsu/adetailer](https://huggingface.co/Bingsu/adetailer).
-
-[View the workflow definition](workflows/examples/adetailer.json)
-
-Please note that to use this workflow, the 'YOLO' option under "Additional components" in the Face Editor section of the "Settings" tab needs to be enabled. 
-
-
-### Example 4: Anime Face Detection Workflow - lbpcascade_animeface Example
-
-This workflow uses the `lbpcascade_animeface` face detector, which is specially designed for detecting anime faces. The source of this detector is the widely known [lbpcascade_animeface](https://github.com/nagadomi/lbpcascade_animeface) model. 
-
-[View the workflow definition](workflows/examples/lbpcascade_animeface.json)
-
-
-### Example 5: Simple Face Blurring
-
-This workflow is straightforward and has a single, simple task - blurring detected faces in an image. It uses the `RetinaFace` method for face detection, which is a reliable and high-performance detection algorithm.
-
-[View the workflow definition](workflows/examples/blur.json)
-
-The `Blur` face processor is employed here, which, as the name suggests, applies a blur effect to the detected faces. For masking, the workflow uses the `NoMask` mask generator. This is a special mask generator that doesn't mask anything - it simply allows the entire face to pass through to the face processor.
-
-As a result, the entire area of each detected face gets blurred. This can be useful in situations where you need to anonymize faces in images for privacy reasons.
-
-
-### Example 6: Different Processing Based on Face Position
-
-This workflow employs the `RetinaFace` face detector and applies different processing depending on the position of the detected faces in the image. 
-
-[View the workflow definition](workflows/examples/blur_non_center_faces.json)
-
-For faces located in the center of the image (as specified by the `"criteria": "center"` condition), the `img2img` face processor and `BiSeNet` mask generator are used. This means that faces in the center of the image will be subject to advanced masking and img2img transformations.
-
-On the other hand, for faces not located in the center, the `Blur` face processor and `NoMask` mask generator are applied, effectively blurring these faces. 
-
-This workflow could be handy in situations where you want to emphasize the subject in the middle of the photo, or to anonymize faces in the background for privacy reasons.
-
-----
-
-### Workflow Components (Inferencers)
-Let's delve into the concept of "Workflow Components", or "inferencers" as they are referred to in the software implementation. These constitute the building blocks of your custom workflow, with a selection available for use. Some are tried and tested, while others offer a more experimental approach—feel free to explore and determine what best fits your requirements. As development continues and new components are added, the range of choices will naturally expand. Furthermore, if you are inclined towards customization, there's the opportunity to create your own component.
-
-#### Face Detector
-Select a model or algorithm to be used for face detection.
-- [RetinaFace](https://github.com/xinntao/facexlib/blob/master/facexlib/detection/__init__.py) : This face detector is used in the default workflow. It's built directly into the stable-diffusion-webui, so no additional software installation is required, reducing the chance of operational issues.
-- [lbpcascade_animeface](https://github.com/nagadomi/lbpcascade_animeface) : This face detector is designed specifically for anime/manga faces.
-- [YOLO](https://github.com/ultralytics/ultralytics): This detector utilizes the YOLO (You Only Look Once) system for real-time object detection. While not designed specifically for face detection, it can be used to detect other objects of interest in addition to faces. To use this, please enable 'YOLO' option under "Additional components" in the Face Editor section of the "Settings" tab. 
-
-  YoloDetector takes the following parameters which can be specified in the 'params' of the JSON configuration:
-
-  - `path` (string, default: "yolov8n.pt"): Path to the model file. If `repo_id` is specified, the model will be downloaded from Hugging Face Model Hub instead, using `repo_id` and `filename`.
-  - `repo_id` (string, optional): The repository ID if the model is hosted on Hugging Face Model Hub. If this is specified, `path` will be ignored.
-  - `filename` (string, optional): The filename of the model in the Hugging Face Model Hub repository. Use this in combination with `repo_id`.
-  - `conf`: (float, optional, default: 0.5): The confidence threshold for object detection.
-- [MediaPipe](https://developers.google.com/mediapipe): Developed by Google, MediaPipe is a Face Detector that implements a real-time, machine-learning based face detection algorithm. To use this, please enable 'MediaPipe' option under "Additional components" in the Face Editor section of the "Settings" tab.
-
-  MediaPipeFaceDetector accepts the following parameters which can be specified in the 'params' of the JSON configuration:
-
-  - `conf`: (float, optional, default: 0.01): The confidence threshold for face detection. This specifies the minimum confidence for a face to be detected. The higher this value, the fewer faces will be detected, and the lower this value, the more faces will be detected.
-
-#### Face Processor
-Choose an algorithm or method to process the detected faces.
-
-- `img2img`: This is the implementation used for enhancing enlarged face images in the default workflow.
-- `Blur`: This face processor applies a Gaussian blur to the detected face region. The intensity of the blur can be specified using the `radius` parameter in the 'params' of the JSON configuration. The larger the radius, the more intense the blur effect.
-
-  Blur takes the following parameter which can be specified in the 'params' of the JSON configuration:
-
-  - `radius`: (integer, default: 20): The radius of the Gaussian blur filter. 
-- `NoOp`: This face processor does not apply any processing to the detected faces. It can be used when no face enhancement or modification is desired, and only detection or other aspects of the workflow are needed.
-
-
-#### Mask Generator
-Choose a model or algorithm for generating masks.
-
-- [BiSeNet](https://github.com/xinntao/facexlib/blob/master/facexlib/parsing/__init__.py): This operates as the Mask Generator in the default workflow. Similar to RetinaFace, it's integrated into the stable-diffusion-webui, making it easy to use without the need for additional software installations. It generates a mask using a deep learning model (BiSeNet) based on the face area of the image. Unique to BiSeNet, it can recognize the "Affected areas" specified by the user, including 'Face', 'Hair', 'Hat', and 'Neck'. This option will be invalid with other mask generators. It includes a fallback mechanism where if the BiSeNet fails to generate an appropriate mask, it can fall back to the `VignetteMaskGenerator`. Params include:
-
-  - `fallback_ratio` (float, default: 0.25): Extent to which a mask must cover the face before switching to the fallback generator. Any mask covering less than this ratio of the face will be replaced by a mask generated by the `VignetteMaskGenerator`.
-- `Vignette`: This mask generator creates a mask by applying a Gaussian (circular fade-out effect) to the face area. It is less computationally demanding than deep-learning-based mask generators and can consistently produce a mask under conditions where deep-learning-based mask generators such as BiSeNet or YOLO may struggle, such as with unusual face orientations or expressions. It serves as the fallback mask generator for the BiSeNet Mask Generator when it fails to generate an appropriate mask. Params include:
-
-  - `sigma` (float, default: -1): The spread of the Gaussian effect. If not specified or set to -1, a default value of 120 will be used when `use_minimal_area` is set to True, and a default value of 180 will be used otherwise.
-  - `keep_safe_area` (boolean, default: False): If set to True, a safe area within the ellipse around the face will be preserved entirely within the mask, preventing the fade-out effect from being applied to this area.
-- `Ellipse`: This option draws an ellipse around the detected face region to generate a mask.
-- `Rect`: This is a simplistic implementation that uses the detected face region as a direct mask.
-- `NoMask`: This option generates a "mask" that is simply an all-white image of the same size as the input face image. It essentially does not mask any part of the image and can be used in scenarios where no masking is desired.
-- [YOLO](https://github.com/ultralytics/ultralytics): This utilizes the YOLO (You Only Look Once) system for mask generation. To use this, please enable 'YOLO' option under "Additional components" in the Face Editor section of the "Settings" tab. Params include:
-
-  - `path` (string, default: "yolov8n-seg.pt"): Path to the model file. If `repo_id` is specified, the model will be downloaded from Hugging Face Model Hub instead, using `repo_id` and `filename`.
-  - `repo_id` (string, optional): The repository ID if the model is hosted on Hugging Face Model Hub. If this is specified, `path` will be ignored.
-  - `filename` (string, optional): The filename of the model in the Hugging Face Model Hub repository. Use this in combination with `repo_id`.
-  - `conf` (float, default: 0.5): Confidence threshold for detections. Any detection with a confidence lower than this will be ignored.
-- [AnimeSegmentation](https://github.com/SkyTNT/anime-segmentation): This utilizes the [Anime Segmentation](https://github.com/SkyTNT/anime-segmentation) model from the [Hugging Face Model Hub](https://huggingface.co/skytnt/anime-seg) to generate masks specifically designed for anime images. Note that this requires ONNX Runtime and a compatible CUDA device for inference. To use this, please enable 'AnimeSegmentation' option under "Additional components" in the Face Editor section of the "Settings" tab. 
-- [MediaPipe](https://developers.google.com/mediapipe): This mask generator uses the MediaPipe Face Mesh model to generate masks. It identifies a set of facial landmarks and interpolates these to create a mask. To use this, please enable 'MediaPipe' option under "Additional components" in the Face Editor section of the "Settings" tab. Params include:
-
-  - `use_convex_hull` (boolean, default: True): If set to True, the mask is created based on the convex hull (the smallest convex polygon that contains all the points) of the facial landmarks. This can help to create a more uniform and regular mask shape. If False, the mask is directly based on the face landmarks, possibly leading to a more irregular shape.
-  - `dilate_size` (integer, default: -1): Determines the size of the morphological dilation and erosion processes. These operations can adjust the mask size and smooth its edges. If set to -1, the dilation size will be automatically set to 0 if `use_convex_hull` is True, or 40 if `use_convex_hull` is False.
-  - `conf` (float, default: 0.01): Confidence threshold for the MediaPipe Face Mesh model. Any landmarks detected with a confidence lower than this value will be ignored during mask generation.
+### Additional components
+- [Anime Segmentation components](scripts/inferencers/anime_segmentation/README.md)
+- [InsightFace components](scripts/inferencers/insightface/README.md)
+- [Mediapipe components](scripts/inferencers/mediapipe/README.md)
+- [YOLO components](scripts/inferencers/yolo/README.md)
 
 
 ### Workflow JSON Reference
