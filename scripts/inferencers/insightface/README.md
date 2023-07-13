@@ -10,7 +10,7 @@ A Face Detector implemented using [the InsightFace Detection module](https://git
 - InsightFace
 
 #### Implementation
-- [InsightFaceDetector](face_detector.py)
+- [InsightFaceDetector](detector.py)
 
 #### Recognized UI settings
 - N/A
@@ -26,7 +26,7 @@ A Face Detector implemented using [the InsightFace Detection module](https://git
 - landmarks: 5 (both eyes, the nose, and both ends of the mouth)
 
 #### Usage in Workflows
-- [mediapipe.json](../../../workflows/examples/insightface.json)
+- [insightface.json](../../../workflows/examples/insightface.json)
 
 ---
 

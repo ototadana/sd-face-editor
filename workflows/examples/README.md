@@ -13,7 +13,7 @@ This workflow uses the MediaPipe face detector and applies the 'img2img' face pr
 
 [View the workflow definition](mediapipe.json)
 
-Please note that to use this workflow, the 'MediaPipe' option under "Additional components" in the Face Editor section of the "Settings" tab needs to be enabled.
+Please note that to use this workflow, the 'mediapipe' option under "Additional components" in the Face Editor section of the "Settings" tab needs to be enabled.
 
 This is a good starting point for creating more complex workflows. You can customize this by changing the face detector or face processor, adding parameters, or adding conditions to apply different processing to different faces.
 
@@ -25,7 +25,7 @@ This workflow uses the YOLO face detector and applies the 'img2img' face process
 
 [View the workflow definition](yolov8n.json)
 
-Please note that to use this workflow, the 'YOLO' option under "Additional components" in the Face Editor section of the "Settings" tab needs to be enabled. Also, you need to use a model trained for face detection, as the `yolov8n.pt` model specified here does not support face detection.
+Please note that to use this workflow, the 'yolo' option under "Additional components" in the Face Editor section of the "Settings" tab needs to be enabled. Also, you need to use a model trained for face detection, as the `yolov8n.pt` model specified here does not support face detection.
 
 Like the MediaPipe workflow, this is a good starting point for creating more complex workflows. You can customize it in the same ways.
 
@@ -37,7 +37,7 @@ This workflow uses the YOLO face detector, but it employs a model that is actual
 
 [View the workflow definition](adetailer.json)
 
-Please note that to use this workflow, the 'YOLO' option under "Additional components" in the Face Editor section of the "Settings" tab needs to be enabled. 
+Please note that to use this workflow, the 'yolo' option under "Additional components" in the Face Editor section of the "Settings" tab needs to be enabled. 
 
 ---
 
