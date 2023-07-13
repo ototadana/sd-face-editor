@@ -1,0 +1,9 @@
+{
+    "face_detector": "InsightFace",
+    "rules": {
+        "then": {
+            "face_processor": "img2img",
+            "mask_generator": "InsightFace"
+        }
+    }
+}

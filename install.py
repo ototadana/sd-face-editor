@@ -13,7 +13,7 @@ from modules import shared
 
 from scripts.use_cases.installer import Installer
 
-for component in shared.opts.data.get("face_editor_additional_components", []):
+if shared.opts.data.get("face_editor_additional_components", None) is not None:
     for cls in load_classes_from_directory(Installer, True):
         try:
             cls().install()

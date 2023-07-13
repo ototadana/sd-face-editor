@@ -1,4 +1,4 @@
-from typing import NamedTuple, Tuple
+from typing import Dict, NamedTuple, Tuple
 
 import numpy as np
 
@@ -18,7 +18,14 @@ class Landmarks(NamedTuple):
 
 class Rect:
     def __init__(
-        self, left: int, top: int, right: int, bottom: int, tag: str = "face", landmarks: Landmarks = None
+        self,
+        left: int,
+        top: int,
+        right: int,
+        bottom: int,
+        tag: str = "face",
+        landmarks: Landmarks = None,
+        attributes: Dict[str, str] = {},
     ) -> None:
         self.tag = tag
         self.left = left
@@ -31,11 +38,18 @@ class Rect:
         self.height = bottom - top
         self.size = self.width * self.height
         self.landmarks = landmarks
+        self.attributes = attributes
 
     @classmethod
-    def from_ndarray(cls, face_box: np.ndarray, tag: str = "face") -> "Rect":
+    def from_ndarray(
+        cls,
+        face_box: np.ndarray,
+        tag: str = "face",
+        landmarks: Landmarks = None,
+        attributes: Dict[str, str] = {},
+    ) -> "Rect":
         left, top, right, bottom, *_ = list(map(int, face_box))
-        return cls(left, top, right, bottom, tag)
+        return cls(left, top, right, bottom, tag, landmarks, attributes)
 
     def to_tuple(self) -> Tuple[int, int, int, int]:
         return self.left, self.top, self.right, self.bottom
