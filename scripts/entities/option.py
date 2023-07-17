@@ -24,6 +24,7 @@ class Option:
     DEFAULT_AFFECTED_AREAS = ["Face"]
     DEFAULT_WORKFLOW = open(os.path.join(workflows_dir, "default.json")).read()
     DEFAULT_UPSCALER = "None"
+    DEFAULT_TILT_ADJUSTMENT_THRESHOLD = 40
 
     def __init__(self, *args) -> None:
         self.extra_options: Dict[str, Dict[str, str]] = {}
@@ -46,6 +47,7 @@ class Option:
         self.show_original_image = Option.DEFAULT_SHOW_ORIGINAL_IMAGE
         self.workflow = Option.DEFAULT_WORKFLOW
         self.upscaler = Option.DEFAULT_UPSCALER
+        self.tilt_adjustment_threshold = Option.DEFAULT_TILT_ADJUSTMENT_THRESHOLD
 
         if len(args) > 0 and isinstance(args[0], dict):
             self.update_by_dict(args[0])
@@ -81,6 +83,9 @@ class Option:
         self.show_original_image = args[16] if arg_len > 16 and isinstance(args[16], bool) else self.show_original_image
         self.workflow = args[17] if arg_len > 17 and isinstance(args[17], str) else self.workflow
         self.upscaler = args[18] if arg_len > 18 and isinstance(args[18], str) else self.upscaler
+        self.tilt_adjustment_threshold = (
+            args[19] if arg_len > 19 and isinstance(args[19], int) else self.tilt_adjustment_threshold
+        )
 
     def update_by_dict(self, params: dict) -> None:
         self.face_margin = params.get("face_margin", self.face_margin)
@@ -102,6 +107,7 @@ class Option:
         self.show_original_image = params.get("show_original_image", self.show_original_image)
         self.workflow = params.get("workflow", self.workflow)
         self.upscaler = params.get("upscaler", self.upscaler)
+        self.tilt_adjustment_threshold = params.get("tilt_adjustment_threshold", self.tilt_adjustment_threshold)
 
         for k, v in params.items():
             if isinstance(v, dict):
@@ -126,6 +132,7 @@ class Option:
             Option.add_prefix("affected_areas"): str.join(";", self.affected_areas),
             Option.add_prefix("workflow"): self.workflow,
             Option.add_prefix("upscaler"): self.upscaler,
+            Option.add_prefix("tilt_adjustment_threshold"): self.tilt_adjustment_threshold,
         }
 
         for option_group_name, options in self.extra_options.items():

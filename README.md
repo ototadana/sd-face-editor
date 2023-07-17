@@ -231,6 +231,9 @@ If the value is too small, facial collapse cannot be corrected, but if it is too
 </details>
 
 
+##### Tilt adjustment threshold (0-180)
+This option defines the angle, in degrees, above which tilt correction will be automatically applied to detected faces. For instance, if set to 20, any face detected with a tilt greater than 20 degrees will be adjusted. However, if the "Adjust tilt for detected faces" option in the Face Editor section of the "Settings" tab is enabled, tilt correction will always be applied, regardless of the tilt adjustment threshold value.
+
 #### Step 4. Paste the Faces
 ##### Apply inside mask only
 Paste an image cut out in the shape of a face instead of a square image.
@@ -352,6 +355,60 @@ In this project, the components used in the workflow are also referred to as "in
             - `params` (object, optional): Parameters for the component, represented as key-value pairs.
   
 Rules are processed in the order they are specified. Once a face is processed by a rule, it will not be processed by subsequent rules. The last rule can be specified with `then` only (i.e., without `when`), which will process all faces that have not been processed by previous rules.
+
+---
+## Settings
+
+In the "Face Editor" section of the "Settings" tab, the following settings can be configured.
+
+### "Search workflows in subdirectories"
+
+**Overview**  
+"Search workflows in subdirectories" is a setting option that controls whether Face Editor includes subdirectories in its workflow search.
+
+**Value and Impact**  
+The value is a boolean, with either `True` or `False` to be specified. The default value is `False`, which indicates that the search does not include subdirectories. When set to `True`, the workflow search extends into subdirectories, allowing for the reference of sample workflows.
+
+---
+
+### "Additional components"
+
+**Overview**  
+"Additional components" is a setting option that specifies the additional components available for use in Face Editor.
+
+**Value and Impact**  
+This setting is a series of checkboxes labeled with component names. Checking a box (setting to Enabled) activates the corresponding component in Face Editor.
+
+---
+
+### "Save original image if face detection fails"
+
+**Overview**  
+"Save original image if face detection fails" is a setting option that specifies whether to save the original image if face detection fails.
+
+**Value and Impact**  
+The value is a boolean, with either `True` or `False` to be specified. The default value is `True`, which means that the original image will be saved if face detection fails.
+
+---
+
+### "Adjust tilt for detected faces"
+
+**Overview**  
+"Adjust tilt for detected faces" is a setting option that specifies whether to adjust the tilt for detected faces.
+
+**Value and Impact**  
+The value is a boolean, with either `True` or `False` to be specified. The default value is `False`, indicating that no tilt correction will be applied when a face is detected. Even when "Adjust tilt for detected faces" is not enabled, the tilt correction may still be applied based on the "Tilt adjustment threshold" setting.
+
+---
+
+### "The position in postprocess at which this script will be executed"
+
+**Overview**  
+"The position in postprocess at which this script will be executed" is a setting option that specifies the position at which this script will be executed during postprocessing.
+
+**Value and Impact**  
+The value is an integer, with a value from 0 to 99 to be specified. A smaller value means that the script will be executed earlier. The default value is `99`, which indicates that this script will likely be executed last during postprocessing.
+
 
 ---
 ## Contribution

@@ -128,6 +128,15 @@ class UiBuilder:
                 )
                 self.infotext_fields.append((strength1, Option.add_prefix("strength1")))
 
+                tilt_adjustment_threshold = gr.Slider(
+                    label="Tilt adjustment threshold",
+                    minimum=0,
+                    maximum=180,
+                    step=10,
+                    value=Option.DEFAULT_TILT_ADJUSTMENT_THRESHOLD,
+                )
+                self.infotext_fields.append((tilt_adjustment_threshold, Option.add_prefix("tilt_adjustment_threshold")))
+
                 apply_scripts_to_faces = gr.Checkbox(
                     label="Apply scripts to faces", visible=False, value=Option.DEFAULT_APPLY_SCRIPTS_TO_FACES
                 )
@@ -173,6 +182,7 @@ class UiBuilder:
             show_original_image,
             workflow,
             upscaler,
+            tilt_adjustment_threshold,
         ]
 
 
