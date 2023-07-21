@@ -64,6 +64,9 @@ class ImageProcessor:
             all_prompts.extend(proc.all_prompts)
             infotexts.extend(proc.infotexts)
 
+        if res.index_of_first_image == 1:
+            edited_images.insert(0, images.image_grid(edited_images))
+
         if option.show_original_image:
             res.images.extend(edited_images)
         else:
@@ -279,7 +282,7 @@ class ImageProcessor:
                 face.top : face.bottom,
                 face.left : face.right,
             ] = face_image
-        return self.__add_comment(entire_image, f"{len(faces)}")
+        return Image.fromarray(self.__add_comment(entire_image, f"{len(faces)}"))
 
     def __get_wildcards_script(self, p: StableDiffusionProcessingImg2Img):
         if p.scripts is None:
