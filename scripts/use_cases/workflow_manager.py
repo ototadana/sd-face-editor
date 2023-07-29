@@ -52,17 +52,18 @@ class WorkflowManager:
         return results
 
     def select_rule(self, faces: List[Face], index: int, width: int, height: int) -> Rule:
-        if faces[index].face_area is None:
+        face = faces[index]
+        if face.face_area is None:
             return None
 
         for rule in self.workflow.rules:
             if rule.when is None:
                 return rule
 
-            if self.__is_tag_match(rule.when, faces[index]) and self.__is_criteria_match(
-                rule.when, faces, index, width, height
-            ):
-                return rule
+            if self.__is_tag_match(rule.when, face):
+                tag_matched_faces = [f for f in faces if self.__is_tag_match(rule.when, f)]
+                if self.__is_criteria_match(rule.when, tag_matched_faces, face, width, height):
+                    return rule
 
         return None
 
@@ -87,7 +88,7 @@ class WorkflowManager:
             return True
         return query_matcher.evaluate(query, face.face_area.attributes)
 
-    def __is_criteria_match(self, condition: Condition, faces: List[Face], index: int, width: int, height: int) -> bool:
+    def __is_criteria_match(self, condition: Condition, faces: List[Face], face: Face, width: int, height: int) -> bool:
         if not condition.has_criteria():
             return True
 
@@ -98,54 +99,54 @@ class WorkflowManager:
             return True
 
         if criteria in {"left", "leftmost"}:
-            return self.__is_left(indices, faces, index)
+            return self.__is_left(indices, faces, face)
         if criteria in {"center", "center_horizontal", "middle_horizontal"}:
-            return self.__is_center(indices, faces, index, width)
+            return self.__is_center(indices, faces, face, width)
         if criteria in {"right", "rightmost"}:
-            return self.__is_right(indices, faces, index)
+            return self.__is_right(indices, faces, face)
         if criteria in {"top", "upper", "upmost"}:
-            return self.__is_top(indices, faces, index)
+            return self.__is_top(indices, faces, face)
         if criteria in {"middle", "center_vertical", "middle_vertical"}:
-            return self.__is_middle(indices, faces, index, height)
+            return self.__is_middle(indices, faces, face, height)
         if criteria in {"bottom", "lower", "downmost"}:
-            return self.__is_bottom(indices, faces, index)
+            return self.__is_bottom(indices, faces, face)
         if criteria in {"small", "tiny", "smaller"}:
-            return self.__is_small(indices, faces, index)
+            return self.__is_small(indices, faces, face)
         if criteria in {"large", "big", "bigger"}:
-            return self.__is_large(indices, faces, index)
+            return self.__is_large(indices, faces, face)
         return False
 
-    def __is_left(self, indices: List[int], faces: List[Face], index: int) -> bool:
+    def __is_left(self, indices: List[int], faces: List[Face], face: Face) -> bool:
         sorted_faces = sorted(faces, key=lambda f: f.face_area.left)
-        return sorted_faces.index(faces[index]) in indices
+        return sorted_faces.index(face) in indices
 
-    def __is_center(self, indices: List[int], faces: List[Face], index: int, width: int) -> bool:
+    def __is_center(self, indices: List[int], faces: List[Face], face: Face, width: int) -> bool:
         sorted_faces = sorted(faces, key=lambda f: abs((f.face_area.center - width / 2)))
-        return sorted_faces.index(faces[index]) in indices
+        return sorted_faces.index(face) in indices
 
-    def __is_right(self, indices: List[int], faces: List[Face], index: int) -> bool:
+    def __is_right(self, indices: List[int], faces: List[Face], face: Face) -> bool:
         sorted_faces = sorted(faces, key=lambda f: f.face_area.right, reverse=True)
-        return sorted_faces.index(faces[index]) in indices
+        return sorted_faces.index(face) in indices
 
-    def __is_top(self, indices: List[int], faces: List[Face], index: int) -> bool:
+    def __is_top(self, indices: List[int], faces: List[Face], face: Face) -> bool:
         sorted_faces = sorted(faces, key=lambda f: f.face_area.top)
-        return sorted_faces.index(faces[index]) in indices
+        return sorted_faces.index(face) in indices
 
-    def __is_middle(self, indices: List[int], faces: List[Face], index: int, height: int) -> bool:
+    def __is_middle(self, indices: List[int], faces: List[Face], face: Face, height: int) -> bool:
         sorted_faces = sorted(faces, key=lambda f: abs(f.face_area.middle - height / 2))
-        return sorted_faces.index(faces[index]) in indices
+        return sorted_faces.index(face) in indices
 
-    def __is_bottom(self, indices: List[int], faces: List[Face], index: int) -> bool:
+    def __is_bottom(self, indices: List[int], faces: List[Face], face: Face) -> bool:
         sorted_faces = sorted(faces, key=lambda f: f.face_area.bottom, reverse=True)
-        return sorted_faces.index(faces[index]) in indices
+        return sorted_faces.index(face) in indices
 
-    def __is_small(self, indices: List[int], faces: List[Face], index: int) -> bool:
+    def __is_small(self, indices: List[int], faces: List[Face], face: Face) -> bool:
         sorted_faces = sorted(faces, key=lambda f: f.face_area.size)
-        return sorted_faces.index(faces[index]) in indices
+        return sorted_faces.index(face) in indices
 
-    def __is_large(self, indices: List[int], faces: List[Face], index: int) -> bool:
+    def __is_large(self, indices: List[int], faces: List[Face], face: Face) -> bool:
         sorted_faces = sorted(faces, key=lambda f: f.face_area.size, reverse=True)
-        return sorted_faces.index(faces[index]) in indices
+        return sorted_faces.index(face) in indices
 
     def process(self, jobs: List[Job], face: Face, p: StableDiffusionProcessingImg2Img, option: Option) -> Image:
         for job in jobs:

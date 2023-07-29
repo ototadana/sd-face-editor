@@ -25,8 +25,13 @@ A Face Detector implemented using [the InsightFace Detection module](https://git
   - "age": The detected age of the face.
 - landmarks: 5 (both eyes, the nose, and both ends of the mouth)
 
+**Note**  
+Please be aware that the accuracy of gender and age detection with the InsightFace Detector is at a level where it can just about be used for experimental purposes.
+
+
 #### Usage in Workflows
 - [insightface.json](../../../workflows/examples/insightface.json)
+- [blur_young_people.json](../../../workflows/examples/blur_young_people.json)
 
 ---
 

@@ -72,3 +72,30 @@ For faces located in the center of the image (as specified by the `"criteria": "
 On the other hand, for faces not located in the center, the `Blur` face processor and `NoMask` mask generator are applied, effectively blurring these faces. 
 
 This workflow could be handy in situations where you want to emphasize the subject in the middle of the photo, or to anonymize faces in the background for privacy reasons.
+
+---
+
+### Example 7: Basic Workflow - InsightFace
+
+This workflow utilizes the InsightFace face detector and applies the 'img2img' face processor and 'InsightFace' mask generator to all detected faces.
+
+[View the workflow definition](insightface.json)
+
+Please note that to use this workflow, the 'insightface' option under "Additional components" in the Face Editor section of the "Settings" tab needs to be enabled.
+
+---
+
+### Example 8: Blurring Young People's Faces
+
+This workflow employs the InsightFace face detector and adjusts the processing of detected faces based on their ages.
+
+[View the workflow definition](blur_young_people.json)
+
+For faces that are under 30 years old (as specified by the `"tag": "face?age<30"` condition), the Blur face processor and NoMask mask generator are applied. This results in blurring the faces of younger individuals.
+
+For all other faces (i.e., those aged 30 or over), the img2img face processor and BiSeNet mask generator are used. This leads to advanced masking and img2img transformations.
+
+This workflow can be beneficial in scenarios where you need to blur the faces of young people for anonymization in image processing. It also serves as an example of applying different processing based on age.
+
+Please note that the accuracy of age detection depends on the face detector's performance. There might be variations or inaccuracies in the detected age.
+
