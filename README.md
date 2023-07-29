@@ -339,7 +339,21 @@ In this project, the components used in the workflow are also referred to as "in
 - `rules` (array or object, required): One or more rules to be applied.
   - Each rule can be an object that consists of `when` and `then`:
     - `when` (object, optional): The condition for the rule.
-      - `tag` (string, optional): A tag corresponding to the type of face detected by the face detector.
+      - `tag` (string, optional): A tag corresponding to the type of face detected by the face detector. This tag can optionally include a query following the tag name, separated by a '?'. This query is a complex condition that defines attribute-value comparisons using operators. The query can combine multiple comparisons using logical operators. For example, a tag could be "face?age<30&gender=M", which means that the tag name is "face" and the query is "age<30&gender=M". The query indicates that the rule should apply to faces that are identified as male and are less than 30 years old.
+      - The available operators are as follows:
+         - `=`: Checks if the attribute is equal to the value.
+         - `<`: Checks if the attribute is less than the value.
+         - `>`: Checks if the attribute is greater than the value.
+         - `<=`: Checks if the attribute is less than or equal to the value.
+         - `>=`: Checks if the attribute is greater than or equal to the value.
+         - `!=`: Checks if the attribute is not equal to the value.
+         - `~=`: Checks if the attribute value contains the value.
+         - `*=`: Checks if the attribute value starts with the value.
+         - `=*`: Checks if the attribute value ends with the value.
+         - `~*`: Checks if the attribute value does not contain the value.
+      - The logical operators are as follows:
+         - `&`: Represents logical AND.
+         - `|`: Represents logical OR.
       - `criteria` (string, optional): This determines which faces will be processed, based on their position or size. Available options for position include 'left', 'right', 'center', 'top', 'middle', 'bottom'. For size, 'small', 'large' are available. The selection of faces to be processed that match the specified criteria can be defined in this string, following the pattern `{position/size}:{index range}`. The `{index range}` can be a single index, a range of indices, or a combination of these separated by a comma. For example, specifying left:0 will process the face that is located the most to the left on the screen. left:0-2 will process the three faces that are the most left, and left:0,2,5 will process the most left face, the third from the left, and the sixth from the left. If left is specified without an index or range, it will default to processing the face most left in the frame. Essentially, this is the same as specifying left:0.
     - `then` (object or array of objects, required): The job or list of jobs to be executed if the `when` condition is met.
       - Each job is an object with the following properties:
