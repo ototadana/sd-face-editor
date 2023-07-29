@@ -98,6 +98,7 @@ This face processor applies a Gaussian blur to the detected face region. The int
 #### Usage in Workflows
 - [blur.json](../../workflows/examples/blur.json)
 - [blur_non_center_faces.json](../../workflows/examples/blur_non_center_faces.json)
+- [blur_young_people.json](../../workflows/examples/blur_young_people.json)
 
 ---
 
@@ -214,3 +215,4 @@ This option generates a "mask" that is simply an all-white image of the same siz
 
 #### Usage in Workflows
 - [blur_non_center_faces.json](../../workflows/examples/blur_non_center_faces.json)
+- [blur_young_people.json](../../workflows/examples/blur_young_people.json)

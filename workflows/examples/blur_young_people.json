@@ -1,0 +1,20 @@
+{
+    "face_detector": "InsightFace",
+    "rules": [
+        {
+            "when": {
+                "tag": "face?age<30"
+            },
+            "then": {
+                "face_processor": "Blur",
+                "mask_generator": "NoMask"
+            }
+        },
+        {
+            "then": {
+                "face_processor": "img2img",
+                "mask_generator": "BiSeNet"
+            }
+        }
+    ]
+}
