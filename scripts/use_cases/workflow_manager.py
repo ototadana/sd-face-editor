@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 import cv2
 import numpy as np
@@ -10,7 +10,7 @@ from scripts.entities.definitions import Condition, Job, Rule, Workflow
 from scripts.entities.face import Face
 from scripts.entities.option import Option
 from scripts.entities.rect import Rect
-from scripts.use_cases import registry
+from scripts.use_cases import query_matcher, registry
 from scripts.use_cases.image_processing_util import rotate_array, rotate_image
 
 
@@ -29,6 +29,10 @@ class WorkflowManager:
                     raise KeyError(f"face_processor `{job.face_processor.name}` does not exist")
                 if job.mask_generator.name not in registry.mask_generator_names:
                     raise KeyError(f"mask_generator `{job.mask_generator.name}` does not exist")
+            if rule.when is not None and rule.when.tag is not None and "?" in rule.when.tag:
+                _, query = cls.__parse_tag(rule.when.tag)
+                if len(query) > 0:
+                    query_matcher.validate(query)
 
         return manager
 
@@ -62,6 +66,11 @@ class WorkflowManager:
 
         return None
 
+    @classmethod
+    def __parse_tag(cls, tag: str) -> Tuple[str, str]:
+        parts = tag.split("?", 1)
+        return parts[0], parts[1] if len(parts) > 1 else ""
+
     def __is_tag_match(self, condition: Condition, face: Face) -> bool:
         if condition.tag is None or len(condition.tag) == 0:
             return True
@@ -70,8 +79,13 @@ class WorkflowManager:
         if condition_tag == "any":
             return True
 
+        tag, query = self.__parse_tag(condition_tag)
         face_tag = face.face_area.tag.lower() if face.face_area.tag is not None else ""
-        return condition_tag == face_tag
+        if tag != face_tag:
+            return False
+        if len(query) == 0:
+            return True
+        return query_matcher.evaluate(query, face.face_area.attributes)
 
     def __is_criteria_match(self, condition: Condition, faces: List[Face], index: int, width: int, height: int) -> bool:
         if not condition.has_criteria():
