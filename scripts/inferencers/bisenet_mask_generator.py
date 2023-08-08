@@ -32,6 +32,7 @@ class BiSeNetMaskGenerator(MaskGenerator):
     ) -> np.ndarray:
         original_face_image = face_image
         face_image = face_image.copy()
+        face_image = face_image[:, :, ::-1]
 
         if use_minimal_area:
             face_image = MaskGenerator.mask_non_face_areas(face_image, face_area_on_image)
