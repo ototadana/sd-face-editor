@@ -23,6 +23,6 @@ if shared.opts.data.get("face_editor_additional_components", None) is not None:
             print(f"Face Editor: {e}")
 
 launch.run_pip(
-    "install lark-parser",
+    "install lark",
     "requirements for Face Editor",
 )
