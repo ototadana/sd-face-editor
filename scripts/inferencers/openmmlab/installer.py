@@ -9,7 +9,7 @@ class OpenMMLabInstaller(Installer):
 
     def install(self) -> None:
         launch.run_pip(
-            'install openmim "mmsegmentation>=1.0.0" huggingface_hub',
+            'install openmim "mmsegmentation>=1.0.0" huggingface_hub mmdet',
             "requirements for openmmlab inferencers of Face Editor",
         )
         launch.run("mim install mmengine")

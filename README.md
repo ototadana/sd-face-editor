@@ -326,6 +326,7 @@ In this project, the components used in the workflow are also referred to as "in
 - [Anime Segmentation components](scripts/inferencers/anime_segmentation/README.md)
 - [InsightFace components](scripts/inferencers/insightface/README.md)
 - [Mediapipe components](scripts/inferencers/mediapipe/README.md)
+- [OpenMMLab components](scripts/inferencers/openmmlab/README.md)
 - [YOLO components](scripts/inferencers/yolo/README.md)
 
 
