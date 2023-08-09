@@ -1,3 +1,5 @@
+import os
+
 import launch
 
 from scripts.use_cases.installer import Installer
@@ -12,5 +14,9 @@ class OpenMMLabInstaller(Installer):
             'install openmim "mmsegmentation>=1.0.0" huggingface_hub mmdet',
             "requirements for openmmlab inferencers of Face Editor",
         )
-        launch.run("mim install mmengine")
-        launch.run('mim install "mmcv>=2.0.0"')
+        cmd = "mim"
+        if os.name == "nt":
+            cmd = os.path.join("venv", "Scripts", cmd)
+
+        launch.run(f"{cmd} install mmengine")
+        launch.run(f'{cmd} install "mmcv>=2.0.0"')
