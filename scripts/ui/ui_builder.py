@@ -94,8 +94,10 @@ class UiBuilder:
                 )
                 self.infotext_fields.append((face_margin, Option.add_prefix("face_margin")))
 
+                hide_face_size_option = shared.opts.data.get("face_editor_auto_face_size_by_model", False)
                 face_size = gr.Slider(
                     label="Size of the face when recreating",
+                    visible=not hide_face_size_option,
                     minimum=64,
                     maximum=2048,
                     step=16,
@@ -215,6 +217,11 @@ def on_ui_settings():
     shared.opts.add_option(
         "face_editor_correct_tilt",
         shared.OptionInfo(False, "Adjust tilt for detected faces", gr.Checkbox, section=section),
+    )
+
+    shared.opts.add_option(
+        "face_editor_auto_face_size_by_model",
+        shared.OptionInfo(False, "Auto face size adjustment by model", gr.Checkbox, section=section),
     )
 
     shared.opts.add_option(
