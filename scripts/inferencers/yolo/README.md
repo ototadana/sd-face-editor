@@ -50,3 +50,6 @@ This component utilizes a segmentation model from YOLO (You Only Look Once) for 
 - `repo_id` (string, optional): The repository ID if the model is hosted on Hugging Face Model Hub. If this is specified, `path` will be ignored.
 - `filename` (string, optional): The filename of the model in the Hugging Face Model Hub repository. Use this in combination with `repo_id`.
 - `conf` (float, default: 0.5): Confidence threshold for detections. Any detection with a confidence lower than this will be ignored.
+
+#### Usage in Workflows
+- [yolov8n.json](../../../workflows/examples/yolov8n.json)
