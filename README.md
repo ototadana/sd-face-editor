@@ -202,7 +202,7 @@ If other parameters are exactly the same but this value is different, the atmosp
 
 
 ##### Size of the face when recreating 
-Specifies one side of the image size when creating a face image. Normally, there should be no need to change this from the default value (512), but you may see interesting changes if you do.
+Specifies one side of the image size when creating a face image. If you are using the SDXL model, we recommend changing to **1024**. For other models, there is usually no need to change from the default value (512), but you may see interesting changes if you do.
 
 ##### Ignore faces larger than specified size
 Ignore if the size of the detected face is larger than the size specified in "Size of the face when recreating".
@@ -413,6 +413,19 @@ The value is a boolean, with either `True` or `False` to be specified. The defau
 
 **Value and Impact**  
 The value is a boolean, with either `True` or `False` to be specified. The default value is `False`, indicating that no tilt correction will be applied when a face is detected. Even when "Adjust tilt for detected faces" is not enabled, the tilt correction may still be applied based on the "Tilt adjustment threshold" setting.
+
+---
+
+### "Auto face size adjustment by model"
+
+**Overview**  
+"Auto face size adjustment by model" is a setting option that determines whether the Face Editor automatically adjusts the size of the face based on the selected model.
+
+**Value and Impact**  
+The setting is a checkbox. When checked (enabled):
+
+- The face size will be set to 1024 if the SDXL model is selected. For other models, the face size will be set to 512.
+- The ["Size of the face when recreating"](#size-of-the-face-when-recreating) setting will be hidden and its value will be ignored, since the face size will be determined based on the chosen model.
 
 ---
 

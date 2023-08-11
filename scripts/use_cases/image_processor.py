@@ -91,6 +91,8 @@ class ImageProcessor:
     def proc_image(
         self, p: StableDiffusionProcessingImg2Img, option: Option, pre_proc_image: Image = None
     ) -> Processed:
+        if shared.opts.data.get("face_editor_auto_face_size_by_model", False):
+            option.face_size = 1024 if getattr(shared.sd_model, "is_sdxl", False) else 512
         params = option.to_dict()
 
         if hasattr(p.init_images[0], "mode") and p.init_images[0].mode != "RGB":
