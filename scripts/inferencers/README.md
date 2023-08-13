@@ -83,6 +83,8 @@ This is the implementation used for enhancing enlarged face images in the defaul
 ### 2.2 Blur
 This face processor applies a Gaussian blur to the detected face region. The intensity of the blur can be specified using the `radius` parameter in the 'params' of the JSON configuration. The larger the radius, the more intense the blur effect.
 
+![Blur](../../images/inferencers/blur.jpg)
+
 #### Name
 - Blur
 
@@ -127,6 +129,19 @@ This operates as the Mask Generator in the default workflow. Similar to RetinaFa
 
 This component is implemented using [facexlib/parsing](https://github.com/xinntao/facexlib/blob/master/facexlib/parsing/__init__.py).
 
+#### Affected areas - Face
+![Face](../../images/inferencers/bisenet-face.jpg)
+
+#### Affected areas - Face, Hair
+![Face, Hair](../../images/inferencers/bisenet-face-hair.jpg)
+
+#### Affected areas - Face, Hair, Hat
+![Face, Hair, Hat](../../images/inferencers/bisenet-face-hair-hat.jpg)
+
+#### Affected areas - Face, Hair, Hat, Neck
+![Face, Hair, Hat, Neck](../../images/inferencers/bisenet-face-hair-hat-neck.jpg)
+
+
 #### Name
 - BiSeNet
 
@@ -149,6 +164,8 @@ This component is implemented using [facexlib/parsing](https://github.com/xinnta
 ### 3.2 Vignette
 This mask generator creates a mask by applying a Gaussian (circular fade-out effect) to the face area. It is less computationally demanding than deep-learning-based mask generators and can consistently produce a mask under conditions where deep-learning-based mask generators such as BiSeNet or YOLO may struggle, such as with unusual face orientations or expressions. It serves as the fallback mask generator for the BiSeNet Mask Generator when it fails to generate an appropriate mask. 
 
+![Vignette](../../images/inferencers/vignette-default.jpg)
+
 #### Name
 - Vignette
 
@@ -167,6 +184,8 @@ This mask generator creates a mask by applying a Gaussian (circular fade-out eff
 ### 3.3 Ellipse
 This option draws an ellipse around the detected face region to generate a mask.
 
+![Ellipse](../../images/inferencers/ellipse.jpg)
+
 #### Name
 - Ellipse
 
@@ -184,6 +203,8 @@ This option draws an ellipse around the detected face region to generate a mask.
 ### 3.4 Rect
 This is a simplistic implementation that uses the detected face region as a direct mask.
 
+![Rect](../../images/inferencers/face-area-rect.jpg)
+
 #### Name
 - Rect
 
@@ -200,6 +221,8 @@ This is a simplistic implementation that uses the detected face region as a dire
 
 ### 3.5 NoMask
 This option generates a "mask" that is simply an all-white image of the same size as the input face image. It essentially does not mask any part of the image and can be used in scenarios where no masking is desired.
+
+![NoMask](../../images/inferencers/no-mask.jpg)
 
 #### Implementation
 - [NoMaskGenerator](no_mask_generator.py)

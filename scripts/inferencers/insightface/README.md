@@ -38,6 +38,8 @@ Please be aware that the accuracy of gender and age detection with the InsightFa
 ## 2. Mask Generator
 This component utilizes the facial landmark detection feature of InsightFace to generate masks. It identifies the 106 facial landmarks provided by the InsightFace's 'landmark_2d_106' model and uses them to construct the mask.
 
+![Example](../../../images/inferencers/insightface/mask.jpg)
+
 #### Name
 - InsightFace
 

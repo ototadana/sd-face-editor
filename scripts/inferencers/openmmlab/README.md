@@ -6,6 +6,8 @@ To use this, please enable 'openmmlab' option under "Additional components" in t
 ## 1. Mask Generator
 This component utilizes a [Occlusion-aware face segmentation model](https://huggingface.co/ototadana/occlusion-aware-face-segmentation) for mask generation. Because the model is trained by [High-Quality Synthetic Face Occlusion Segmentation Datasets](https://github.com/kennyvoo/face-occlusion-generation), if a face is covered by another object, such as a hand or mask, it can be excluded and the facial segment can be extracted.
 
+![Example](../../../images/inferencers/openmmlab/mask.jpg)
+
 #### Name
 - MMSeg
 
