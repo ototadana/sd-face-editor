@@ -32,6 +32,8 @@ A Face Detector implemented using [the face detection feature of MediaPipe](http
 ## 2. Mask Generator
 This mask generator uses the MediaPipe Face Mesh model to generate masks. It identifies a set of facial landmarks and interpolates these to create a mask.
 
+![Example](../../../images/inferencers/mediapipe/mask.jpg)
+
 #### Name
 - MediaPipe
 

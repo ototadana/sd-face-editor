@@ -6,6 +6,8 @@ To use the following components, please enable 'anime_segmentation' option under
 ## 1. Mask Generator
 This utilizes the [Anime Segmentation](https://github.com/SkyTNT/anime-segmentation) model to generate masks specifically designed for anime images.
 
+![Example](../../../images//inferencers/anime_segmentation/mask.jpg)
+
 #### Name
 - AnimeSegmentation
 
