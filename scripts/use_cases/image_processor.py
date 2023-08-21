@@ -215,6 +215,8 @@ class ImageProcessor:
         p.extra_generation_params.update(params)
 
         if p.denoising_strength > 0:
+            if p.scripts is None:
+                p.scripts = scripts.ScriptRunner()
             proc = process_images(p)
         else:
             proc = self.__save_images(p)
