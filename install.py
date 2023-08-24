@@ -14,6 +14,11 @@ from modules import shared
 
 from scripts.use_cases.installer import Installer
 
+if not shared.opts:
+    from modules import shared_init
+
+    shared_init.initialize()
+
 if shared.opts.data.get("face_editor_additional_components", None) is not None:
     for cls in load_classes_from_directory(Installer, True):
         try:
