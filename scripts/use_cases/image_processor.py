@@ -1,7 +1,7 @@
 import os
 import tempfile
 from operator import attrgetter
-from typing import List
+from typing import Any, List
 
 import cv2
 import modules.images as images
@@ -33,11 +33,12 @@ class ImageProcessor:
         self.workflow = workflow
 
     def proc_images(self, o: StableDiffusionProcessing, res: Processed, option: Option):
-        edited_images, all_seeds, all_prompts, infotexts = [], [], [], []
+        edited_images, all_seeds, all_prompts, all_negative_prompts, infotexts = [], [], [], [], []
         seed_index = 0
         subseed_index = 0
 
         self.__extend_infos(res.all_prompts, len(res.images))
+        self.__extend_infos(res.all_negative_prompts, len(res.images))
         self.__extend_infos(res.all_seeds, len(res.images))
         self.__extend_infos(res.infotexts, len(res.images))
 
@@ -58,22 +59,30 @@ class ImageProcessor:
             if type(p.prompt) == list:
                 p.prompt = p.prompt[i]
 
-            proc = self.proc_image(p, option, image)
+            proc = self.proc_image(p, option, image, res.infotexts[i])
             edited_images.extend(proc.images)
             all_seeds.extend(proc.all_seeds)
             all_prompts.extend(proc.all_prompts)
+            all_negative_prompts.extend(proc.all_negative_prompts)
             infotexts.extend(proc.infotexts)
 
         if res.index_of_first_image == 1:
             edited_images.insert(0, images.image_grid(edited_images))
+            infotexts.insert(0, infotexts[0])
 
         if option.show_original_image:
             res.images.extend(edited_images)
+            res.infotexts.extend(infotexts)
+            res.all_seeds.extend(all_seeds)
+            res.all_prompts.extend(all_prompts)
+            res.all_negative_prompts.extend(all_negative_prompts)
         else:
             res.images = edited_images
-        res.all_seeds.extend(all_seeds)
-        res.all_prompts.extend(all_prompts)
-        res.infotexts.extend(infotexts)
+            res.infotexts = infotexts
+            res.all_seeds = all_seeds
+            res.all_prompts = all_prompts
+            res.all_negative_prompts = all_negative_prompts
+
         return res
 
     def __init_processing(self, p: StableDiffusionProcessingImg2Img, o: StableDiffusionProcessing, image):
@@ -89,7 +98,11 @@ class ImageProcessor:
         p.sample = sample
 
     def proc_image(
-        self, p: StableDiffusionProcessingImg2Img, option: Option, pre_proc_image: Image = None
+        self,
+        p: StableDiffusionProcessingImg2Img,
+        option: Option,
+        pre_proc_image: Image = None,
+        pre_proc_infotext: Any = None,
     ) -> Processed:
         if shared.opts.data.get("face_editor_auto_face_size_by_model", False):
             option.face_size = 1024 if getattr(shared.sd_model, "is_sdxl", False) else 512
@@ -128,7 +141,11 @@ class ImageProcessor:
             )
         ):
             return Processed(
-                p, images_list=[pre_proc_image], all_prompts=[p.prompt], all_seeds=[p.seed], infotexts=[""]
+                p,
+                images_list=[pre_proc_image],
+                all_prompts=[p.prompt],
+                all_seeds=[p.seed],
+                infotexts=[pre_proc_infotext],
             )
 
         wildcards_script = self.__get_wildcards_script(p)
@@ -219,7 +236,7 @@ class ImageProcessor:
                 p.scripts = scripts.ScriptRunner()
             proc = process_images(p)
         else:
-            proc = self.__save_images(p)
+            proc = self.__save_images(p, pre_proc_infotext if len(faces) == 0 else None)
 
         if option.show_intermediate_steps:
             output_images.append(p.init_images[0])
@@ -353,16 +370,19 @@ class ImageProcessor:
 
         return prompt.strip().replace("@@", entire_prompt)
 
-    def __save_images(self, p: StableDiffusionProcessingImg2Img) -> Processed:
-        if p.all_prompts is None or len(p.all_prompts) == 0:
-            p.all_prompts = [p.prompt]
-        if p.all_negative_prompts is None or len(p.all_negative_prompts) == 0:
-            p.all_negative_prompts = [p.negative_prompt]
-        if p.all_seeds is None or len(p.all_seeds) == 0:
-            p.all_seeds = [p.seed]
-        if p.all_subseeds is None or len(p.all_subseeds) == 0:
-            p.all_subseeds = [p.subseed]
-        infotext = create_infotext(p, p.all_prompts, p.all_seeds, p.all_subseeds, {}, 0, 0)
+    def __save_images(self, p: StableDiffusionProcessingImg2Img, pre_proc_infotext: Any) -> Processed:
+        if pre_proc_infotext is not None:
+            infotext = pre_proc_infotext
+        else:
+            if p.all_prompts is None or len(p.all_prompts) == 0:
+                p.all_prompts = [p.prompt]
+            if p.all_negative_prompts is None or len(p.all_negative_prompts) == 0:
+                p.all_negative_prompts = [p.negative_prompt]
+            if p.all_seeds is None or len(p.all_seeds) == 0:
+                p.all_seeds = [p.seed]
+            if p.all_subseeds is None or len(p.all_subseeds) == 0:
+                p.all_subseeds = [p.subseed]
+            infotext = create_infotext(p, p.all_prompts, p.all_seeds, p.all_subseeds, {}, 0, 0)
         images.save_image(
             p.init_images[0], p.outpath_samples, "", p.seed, p.prompt, shared.opts.samples_format, info=infotext, p=p
         )
