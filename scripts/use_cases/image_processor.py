@@ -33,11 +33,12 @@ class ImageProcessor:
         self.workflow = workflow
 
     def proc_images(self, o: StableDiffusionProcessing, res: Processed, option: Option):
-        edited_images, all_seeds, all_prompts, infotexts = [], [], [], []
+        edited_images, all_seeds, all_prompts, all_negative_prompts, infotexts = [], [], [], [], []
         seed_index = 0
         subseed_index = 0
 
         self.__extend_infos(res.all_prompts, len(res.images))
+        self.__extend_infos(res.all_negative_prompts, len(res.images))
         self.__extend_infos(res.all_seeds, len(res.images))
         self.__extend_infos(res.infotexts, len(res.images))
 
@@ -62,6 +63,7 @@ class ImageProcessor:
             edited_images.extend(proc.images)
             all_seeds.extend(proc.all_seeds)
             all_prompts.extend(proc.all_prompts)
+            all_negative_prompts.extend(proc.all_negative_prompts)
             infotexts.extend(proc.infotexts)
 
         if res.index_of_first_image == 1:
@@ -73,11 +75,13 @@ class ImageProcessor:
             res.infotexts.extend(infotexts)
             res.all_seeds.extend(all_seeds)
             res.all_prompts.extend(all_prompts)
+            res.all_negative_prompts.extend(all_negative_prompts)
         else:
             res.images = edited_images
             res.infotexts = infotexts
             res.all_seeds = all_seeds
             res.all_prompts = all_prompts
+            res.all_negative_prompts = all_negative_prompts
 
         return res
 
