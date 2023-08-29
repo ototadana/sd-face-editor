@@ -1,7 +1,7 @@
 import os
 import tempfile
 from operator import attrgetter
-from typing import Any, List
+from typing import Any, List, Tuple
 
 import cv2
 import modules.images as images
@@ -59,7 +59,7 @@ class ImageProcessor:
             if type(p.prompt) == list:
                 p.prompt = p.prompt[i]
 
-            proc = self.proc_image(p, option, image, res.infotexts[i])
+            proc = self.proc_image(p, option, image, res.infotexts[i], (res.width, res.height))
             edited_images.extend(proc.images)
             all_seeds.extend(proc.all_seeds)
             all_prompts.extend(proc.all_prompts)
@@ -103,6 +103,7 @@ class ImageProcessor:
         option: Option,
         pre_proc_image: Image = None,
         pre_proc_infotext: Any = None,
+        original_size: Tuple[int, int] = None,
     ) -> Processed:
         if shared.opts.data.get("face_editor_auto_face_size_by_model", False):
             option.face_size = 1024 if getattr(shared.sd_model, "is_sdxl", False) else 512
@@ -121,6 +122,7 @@ class ImageProcessor:
         entire_height = (p.height // 8) * 8
         entire_prompt = p.prompt
         entire_all_prompts = p.all_prompts
+        original_denoising_strength = p.denoising_strength
         p.batch_size = 1
         p.n_iter = 1
 
@@ -221,26 +223,31 @@ class ImageProcessor:
         p.all_prompts = entire_all_prompts
         p.width = entire_width
         p.height = entire_height
-        p.init_images = [Image.fromarray(entire_image)]
-        p.denoising_strength = option.strength2
+        simple_composite_image = Image.fromarray(entire_image)
+        p.init_images = [simple_composite_image]
         p.mask_blur = option.mask_blur
         p.inpainting_mask_invert = 1
         p.inpainting_fill = 1
         p.image_mask = Image.fromarray(entire_mask_image)
-        p.do_not_save_samples = False
+        p.do_not_save_samples = True
 
         p.extra_generation_params.update(params)
 
-        if p.denoising_strength > 0:
+        if option.strength2 > 0:
+            p.denoising_strength = option.strength2
             if p.scripts is None:
                 p.scripts = scripts.ScriptRunner()
             proc = process_images(p)
-        else:
-            proc = self.__save_images(p, pre_proc_infotext if len(faces) == 0 else None)
+            p.init_images = proc.images
+
+        if original_size is not None:
+            p.width, p.height = original_size
+        p.denoising_strength = original_denoising_strength
+        proc = self.__save_images(p, pre_proc_infotext if len(faces) == 0 else None)
 
         if option.show_intermediate_steps:
-            output_images.append(p.init_images[0])
-            if p.denoising_strength > 0:
+            output_images.append(simple_composite_image)
+            if option.strength2 > 0:
                 output_images.append(Image.fromarray(self.__to_masked_image(entire_mask_image, entire_image)))
                 output_images.append(proc.images[0])
             proc.images = output_images
