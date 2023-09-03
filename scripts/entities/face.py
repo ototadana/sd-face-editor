@@ -95,10 +95,12 @@ class Face:
         try:
             dx = eye2.x - eye1.x
             dy = eye2.y - eye1.y
+            if dx == 0:
+                dx = 1
             angle = np.arctan(dy / dx) * 180 / np.pi
 
             if dx < 0:
-                angle = angle = (angle + 180) % 360
+                angle = (angle + 180) % 360
             return angle
         except Exception:
             print(traceback.format_exc())
