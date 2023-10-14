@@ -1,9 +1,14 @@
+import importlib
+import sys
 import traceback
 from typing import Dict
+
+from modules import shared
 
 from scripts.io.util import load_classes_from_directory
 from scripts.use_cases.face_detector import FaceDetector
 from scripts.use_cases.face_processor import FaceProcessor
+from scripts.use_cases.installer import Installer
 from scripts.use_cases.mask_generator import MaskGenerator
 
 
@@ -30,6 +35,24 @@ def load_face_processor() -> Dict[str, FaceProcessor]:
 def load_mask_generator() -> Dict[str, MaskGenerator]:
     return create(load_classes_from_directory(MaskGenerator), "MaskGenerator")
 
+
+if shared.opts.data.get("face_editor_additional_components", None) is not None:
+    for cls in load_classes_from_directory(Installer, True):
+        try:
+            before_install_modules = set(sys.modules.keys())
+            cls().install()
+            after_install_modules = set(sys.modules.keys())
+            newly_installed_modules = after_install_modules - before_install_modules
+
+            for module_name in newly_installed_modules:
+                if "." not in module_name:
+                    module = sys.modules.get(module_name)
+                    if module:
+                        importlib.reload(module)
+
+        except Exception as e:
+            print(traceback.format_exc())
+            print(f"Face Editor: {e}")
 
 face_detectors = load_face_detector()
 face_processors = load_face_processor()
