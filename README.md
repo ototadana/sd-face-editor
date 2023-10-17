@@ -7,7 +7,7 @@ Face Editor for Stable Diffusion. This Extension is useful for the following pur
 
 ![example](./images/v1.0.0.jpg)
 
-This is a [extension](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/Extensions) of [AUTOMATIC1111's Stable Diffusion Web UI](https://github.com/AUTOMATIC1111/stable-diffusion-webui).
+This is a [extension](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/Extensions) of [AUTOMATIC1111's Stable Diffusion Web UI](https://github.com/AUTOMATIC1111/stable-diffusion-webui). If you are using [SD.Next](https://github.com/vladmandic/automatic), use the [sd.next](https://github.com/ototadana/sd-face-editor/tree/sd.next) branch.
 
 ## Setup
 1. Open the "Extensions" tab then the "Install from URL" tab.
