@@ -32,13 +32,14 @@ class Img2ImgFaceProcessor(FaceProcessor):
         if len(np) > 0:
             p.negative_prompt = np
 
-        refiner_switch_at = p.refiner_switch_at
         if use_refiner_model_only:
+            refiner_switch_at = p.refiner_switch_at
             p.refiner_switch_at = 0
 
         print(f"prompt for the {face.face_area.tag}: {p.prompt}")
 
         proc = process_images(p)
-        p.refiner_switch_at = refiner_switch_at
+        if use_refiner_model_only:
+            p.refiner_switch_at = refiner_switch_at
 
         return proc.images[0]
