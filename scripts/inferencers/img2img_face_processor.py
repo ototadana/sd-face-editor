@@ -1,8 +1,8 @@
 from typing import Union
 
+from modules.processing import StableDiffusionProcessingImg2Img, process_images
 from PIL import Image
 
-from modules.processing import StableDiffusionProcessingImg2Img, process_images
 from scripts.entities.face import Face
 from scripts.use_cases.face_processor import FaceProcessor
 
@@ -36,7 +36,7 @@ class Img2ImgFaceProcessor(FaceProcessor):
             refiner_switch_at = p.refiner_switch_at
             p.refiner_switch_at = 0
 
-        has_hr_checkpoint_name = p.enable_hr and hasattr(p, "hr_checkpoint_name") and p.hr_checkpoint_name is not None and hasattr(p, "override_settings")
+        has_hr_checkpoint_name = hasattr(p, "enable_hr") and p.enable_hr and hasattr(p, "hr_checkpoint_name") and p.hr_checkpoint_name is not None and hasattr(p, "override_settings")
         if has_hr_checkpoint_name:
             backup_sd_model_checkpoint = p.override_settings.get("sd_model_checkpoint", None)
             p.override_settings["sd_model_checkpoint"] = p.hr_checkpoint_name    
