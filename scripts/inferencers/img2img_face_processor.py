@@ -39,7 +39,16 @@ class Img2ImgFaceProcessor(FaceProcessor):
         has_hr_checkpoint_name = hasattr(p, "enable_hr") and p.enable_hr and hasattr(p, "hr_checkpoint_name") and p.hr_checkpoint_name is not None and hasattr(p, "override_settings")
         if has_hr_checkpoint_name:
             backup_sd_model_checkpoint = p.override_settings.get("sd_model_checkpoint", None)
-            p.override_settings["sd_model_checkpoint"] = p.hr_checkpoint_name    
+            p.override_settings["sd_model_checkpoint"] = p.hr_checkpoint_name
+        if getattr(p, "overlay_images", []):
+            overlay_images = p.overlay_images
+            p.overlay_images = []
+        if hasattr(p, "image_mask"):
+            image_mask = p.image_mask
+            p.image_mask = None
+        if hasattr(p, "mask"):
+            mask = p.mask
+            p.mask = None
 
         print(f"prompt for the {face.face_area.tag}: {p.prompt}")
 
@@ -48,5 +57,11 @@ class Img2ImgFaceProcessor(FaceProcessor):
             p.refiner_switch_at = refiner_switch_at
         if has_hr_checkpoint_name:
             p.override_settings["sd_model_checkpoint"] = backup_sd_model_checkpoint
+        if getattr(p, "overlay_images", []):
+            p.overlay_images = overlay_images
+        if hasattr(p, "image_mask"):
+            p.image_mask = image_mask
+        if hasattr(p, "mask"):
+            p.mask = mask
 
         return proc.images[0]
