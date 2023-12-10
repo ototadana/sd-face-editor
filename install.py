@@ -12,6 +12,7 @@ import traceback
 import launch
 from modules import shared
 
+from scripts.entities.settings import Settings
 from scripts.use_cases.installer import Installer
 
 if not shared.opts:
@@ -19,7 +20,7 @@ if not shared.opts:
 
     shared_init.initialize()
 
-if shared.opts.data.get("face_editor_additional_components", None) is not None:
+if len(Settings.additional_components()) > 0:
     for cls in load_classes_from_directory(Installer, True):
         try:
             cls().install()

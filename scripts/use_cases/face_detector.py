@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from PIL import Image
+from PIL.Image import Image
 
 from scripts.entities.rect import Rect
 

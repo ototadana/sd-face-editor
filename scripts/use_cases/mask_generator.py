@@ -35,3 +35,8 @@ class MaskGenerator(ABC):
         non_black_pixels = np.count_nonzero(gray_mask)
         total_pixels = gray_mask.size
         return non_black_pixels / total_pixels
+
+    @staticmethod
+    def to_masked_image(mask_image: np.ndarray, image: np.ndarray) -> np.ndarray:
+        gray_mask = mask_image / 255.0
+        return (image * gray_mask).astype("uint8")

@@ -4,7 +4,8 @@ import os
 from typing import List, Type
 
 import modules.scripts as scripts
-from modules import shared
+
+from scripts.entities.settings import Settings
 
 
 def get_path(*p: str) -> str:
@@ -45,7 +46,7 @@ def load_classes_from_directory(base_class: Type, installer: bool = False) -> Li
     else:
         all_classes = []
 
-    for component in shared.opts.data.get("face_editor_additional_components", []):
+    for component in Settings.additional_components():
         all_classes.extend(
             load_classes_from_directory_(base_class, os.path.join(inferencers_dir, component), installer)
         )

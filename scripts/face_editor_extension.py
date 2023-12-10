@@ -1,7 +1,7 @@
 import modules.scripts as scripts
-from modules import shared
 
 from scripts.entities.option import Option
+from scripts.entities.settings import Settings
 from scripts.ui.ui_builder import UiBuilder
 from scripts.use_cases.image_processor import ImageProcessor
 from scripts.use_cases.workflow_manager import WorkflowManager
@@ -32,7 +32,7 @@ class FaceEditorExtension(scripts.Script):
             p.do_not_save_samples = True
 
         if p.scripts is not None and hasattr(p.scripts, "alwayson_scripts"):
-            script_index = shared.opts.data.get("face_editor_script_index", 99)
+            script_index = Settings.script_index()
             for i, e in enumerate(p.scripts.alwayson_scripts):
                 if e == self:
                     p.scripts.alwayson_scripts.insert(script_index, p.scripts.alwayson_scripts.pop(i))

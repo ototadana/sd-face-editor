@@ -1,5 +1,5 @@
 from modules.processing import StableDiffusionProcessingImg2Img
-from PIL import Image
+from PIL.Image import Image
 
 from scripts.entities.face import Face
 from scripts.use_cases.face_processor import FaceProcessor

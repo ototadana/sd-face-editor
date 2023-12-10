@@ -3,7 +3,7 @@ from typing import List, Sequence
 
 import cv2
 import numpy as np
-from PIL import Image
+from PIL.Image import Image
 
 from scripts.entities.rect import Rect
 from scripts.io.util import assets_dir

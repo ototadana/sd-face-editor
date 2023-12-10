@@ -8,19 +8,15 @@ import modules.images as images
 import modules.scripts as scripts
 import modules.shared as shared
 import numpy as np
-from modules.processing import (
-    Processed,
-    StableDiffusionProcessing,
-    StableDiffusionProcessingImg2Img,
-    create_infotext,
-    process_images,
-)
+from modules.processing import Processed, StableDiffusionProcessing, StableDiffusionProcessingImg2Img, create_infotext
 from PIL import Image
 
 from scripts.entities.definitions import Rule
 from scripts.entities.face import Face
 from scripts.entities.option import Option
 from scripts.entities.rect import Rect
+from scripts.entities.settings import Settings
+from scripts.use_cases.image_processing_util import add_comment
 from scripts.use_cases.mask_generator import MaskGenerator
 from scripts.use_cases.registry import face_processors
 from scripts.use_cases.workflow_manager import WorkflowManager
@@ -56,7 +52,7 @@ class ImageProcessor:
                 p.subseed = res.all_subseeds[subseed_index]
                 subseed_index += 1
 
-            if type(p.prompt) == list:
+            if isinstance(p.prompt, list):
                 p.prompt = p.prompt[i]
 
             proc = self.proc_image(p, option, image, res.infotexts[i], (res.width, res.height))
@@ -105,15 +101,17 @@ class ImageProcessor:
         pre_proc_infotext: Any = None,
         original_size: Tuple[int, int] = None,
     ) -> Processed:
-        if shared.opts.data.get("face_editor_auto_face_size_by_model", False):
+        if Settings.auto_face_size_by_model():
             option.face_size = 1024 if getattr(shared.sd_model, "is_sdxl", False) else 512
+        if option.upscaler == Option.DEFAULT_UPSCALER:
+            option.upscaler = Settings.default_upscaler()
         params = option.to_dict()
 
         if hasattr(p.init_images[0], "mode") and p.init_images[0].mode != "RGB":
             p.init_images[0] = p.init_images[0].convert("RGB")
 
         entire_image = np.array(p.init_images[0])
-        faces = self.__crop_face(p.init_images[0], option)
+        faces, message = self.__crop_face(p.init_images[0], option)
         faces = faces[: option.max_face_count]
         faces = sorted(faces, key=attrgetter("center"))
         entire_mask_image = np.zeros_like(entire_image)
@@ -131,16 +129,13 @@ class ImageProcessor:
 
         output_images = []
         if option.show_intermediate_steps:
-            output_images.append(self.__show_detected_faces(np.copy(entire_image), faces, p))
+            output_images.append(self.__show_detected_faces(np.copy(entire_image), faces, p, message))
 
         print(f"number of faces: {len(faces)}.  ")
         if (
             len(faces) == 0
             and pre_proc_image is not None
-            and (
-                option.save_original_image
-                or not shared.opts.data.get("face_editor_save_original_on_detection_fail", False)
-            )
+            and (option.save_original_image or not Settings.save_original_on_detection_fail())
         ):
             return Processed(
                 p,
@@ -232,13 +227,8 @@ class ImageProcessor:
         p.do_not_save_samples = True
 
         p.extra_generation_params.update(params)
-
-        if option.strength2 > 0:
-            p.denoising_strength = option.strength2
-            if p.scripts is None:
-                p.scripts = scripts.ScriptRunner()
-            proc = process_images(p)
-            p.init_images = proc.images
+        p.denoising_strength = option.strength2 if option.strength2 > 0 else 0
+        self.workflow.edit(p, faces, option, output_images)
 
         if original_size is not None:
             p.width, p.height = original_size
@@ -246,10 +236,6 @@ class ImageProcessor:
         proc = self.__save_images(p, pre_proc_infotext if len(faces) == 0 else None)
 
         if option.show_intermediate_steps:
-            output_images.append(simple_composite_image)
-            if option.strength2 > 0:
-                output_images.append(Image.fromarray(self.__to_masked_image(entire_mask_image, entire_image)))
-                output_images.append(proc.images[0])
             proc.images = output_images
 
         self.__extend_infos(proc.all_prompts, len(proc.images))
@@ -280,19 +266,15 @@ class ImageProcessor:
         def resize(img: np.ndarray):
             return cv2.resize(img, (w // 2, h // 2))
 
-        debug_image[0 : h // 2, 0 : w // 2] = resize(
-            self.__add_comment(self.__add_comment(original_face, attributes), tag, True)
-        )
+        debug_image[0 : h // 2, 0 : w // 2] = resize(add_comment(add_comment(original_face, attributes), tag, True))
 
         criteria = rule.when.criteria if rule.when is not None and rule.when.criteria is not None else ""
-        debug_image[0 : h // 2, w // 2 :] = resize(
-            self.__add_comment(self.__add_comment(face_image, feature), criteria, True)
-        )
+        debug_image[0 : h // 2, w // 2 :] = resize(add_comment(add_comment(face_image, feature), criteria, True))
 
         coverage = MaskGenerator.calculate_mask_coverage(mask_image) * 100
         mask_info = f"size:{option.mask_size}, blur:{option.mask_blur}, cov:{coverage:.0f}%"
         debug_image[h // 2 :, 0 : w // 2] = resize(
-            self.__add_comment(self.__to_masked_image(mask_image, face_image), mask_info)
+            add_comment(MaskGenerator.to_masked_image(mask_image, face_image), mask_info)
         )
 
         face_fg = (face_image * (mask_image / 255.0)).astype("uint8")
@@ -301,7 +283,9 @@ class ImageProcessor:
 
         output_images.append(Image.fromarray(debug_image))
 
-    def __show_detected_faces(self, entire_image: np.ndarray, faces: List[Face], p: StableDiffusionProcessingImg2Img):
+    def __show_detected_faces(
+        self, entire_image: np.ndarray, faces: List[Face], p: StableDiffusionProcessingImg2Img, message: str
+    ):
         processor = face_processors.get("debug")
         for face in faces:
             face_image = np.array(processor.process(face, p))
@@ -310,7 +294,7 @@ class ImageProcessor:
                 face.top : face.bottom,
                 face.left : face.right,
             ] = face_image
-        return Image.fromarray(self.__add_comment(entire_image, f"{len(faces)}"))
+        return Image.fromarray(add_comment(add_comment(entire_image, f"{len(faces)}"), message, True))
 
     def __get_wildcards_script(self, p: StableDiffusionProcessingImg2Img):
         if p.scripts is None:
@@ -326,30 +310,6 @@ class ImageProcessor:
         if prompt == "" or prompt == entire_prompt:
             return ""
         return prompt.replace(entire_prompt, "")
-
-    def __add_comment(self, image: np.ndarray, comment: str, top: bool = False) -> np.ndarray:
-        image = np.copy(image)
-        h, _, _ = image.shape
-        pos = (10, 48) if top else (10, h - 16)
-        cv2.putText(
-            image,
-            text=comment,
-            org=pos,
-            fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-            fontScale=1.2,
-            color=(0, 0, 0),
-            thickness=10,
-        )
-        cv2.putText(
-            image,
-            text=comment,
-            org=pos,
-            fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-            fontScale=1.2,
-            color=(255, 255, 255),
-            thickness=2,
-        )
-        return image
 
     def __apply_wildcards(self, wildcards_script: scripts.Script, prompt: str, seed: int) -> str:
         if "__" in prompt:
@@ -406,11 +366,7 @@ class ImageProcessor:
     def __extend_infos(self, infos: list, image_count: int) -> None:
         infos.extend([infos[0]] * (image_count - len(infos)))
 
-    def __to_masked_image(self, mask_image: np.ndarray, image: np.ndarray) -> np.ndarray:
-        gray_mask = mask_image / 255.0
-        return (image * gray_mask).astype("uint8")
-
-    def __crop_face(self, image: Image, option: Option) -> List[Face]:
+    def __crop_face(self, image: Image.Image, option: Option) -> (List[Face], str):
         face_areas = self.workflow.detect_faces(image, option)
         return self.__crop(
             image, face_areas, option.face_margin, option.face_size, option.ignore_larger_faces, option.upscaler
@@ -418,20 +374,24 @@ class ImageProcessor:
 
     def __crop(
         self,
-        image: Image,
+        image: Image.Image,
         face_areas: List[Rect],
         face_margin: float,
         face_size: int,
         ignore_larger_faces: bool,
         upscaler: str,
-    ) -> List[Face]:
+    ) -> (List[Face], str):
         image = np.array(image, dtype=np.uint8)
+        message = ""
 
         areas: List[Face] = []
         for face_area in face_areas:
             face = Face(image, face_area, face_margin, face_size, upscaler)
             if ignore_larger_faces and face.width > face_size:
+                message = f"ignore larger face: {face.width}x{face.height} > {face_size}x{face_size}"
                 continue
             areas.append(face)
 
-        return sorted(areas, key=attrgetter("height"), reverse=True)
+        if len(areas) == 0:
+            message = "no face detected" if message == "" else message
+        return sorted(areas, key=attrgetter("height"), reverse=True), message

@@ -53,6 +53,37 @@ class Condition(BaseModel):
     def has_criteria(self) -> bool:
         return len(self.get_criteria()) > 0
 
+    def is_all(self) -> bool:
+        return self.get_criteria() == "all"
+
+    def is_left(self) -> bool:
+        return self.get_criteria() in {"left", "leftmost"}
+
+    def is_center(self) -> bool:
+        return self.get_criteria() in {
+            "center",
+            "center_horizontal",
+            "middle_horizontal",
+        }
+
+    def is_right(self) -> bool:
+        return self.get_criteria() in {"right", "rightmost"}
+
+    def is_top(self) -> bool:
+        return self.get_criteria() in {"top", "upper", "upmost"}
+
+    def is_middle(self) -> bool:
+        return self.get_criteria() in {"middle", "center_vertical", "middle_vertical"}
+
+    def is_bottom(self) -> bool:
+        return self.get_criteria() in {"bottom", "lower", "downmost", "bottommost"}
+
+    def is_small(self) -> bool:
+        return self.get_criteria() in {"small", "tiny", "smaller"}
+
+    def is_large(self) -> bool:
+        return self.get_criteria() in {"large", "big", "bigger"}
+
     @validator("criteria")
     def validate_criteria(cls, value):
         c = cls()
@@ -84,7 +115,8 @@ class Rule(BaseModel):
 
 class Workflow(BaseModel):
     face_detector: Union[Worker, List[Worker]]
-    rules: Union[Rule, List[Rule]]
+    rules: Optional[Union[Rule, List[Rule]]]
+    frame_editors: Optional[Union[Worker, List[Worker]]]
 
     @validator("face_detector", pre=True)
     def parse_face_detector(cls, value):
@@ -95,6 +127,17 @@ class Workflow(BaseModel):
 
     @validator("rules", pre=True)
     def wrap_rule_in_list(cls, value):
-        if not isinstance(value, List):
+        if value is None:
+            return []
+        elif not isinstance(value, List):
             return [value]
         return value
+
+    @validator("frame_editors", pre=True)
+    def parse_frame_editors(cls, value):
+        if value is None:
+            return []
+        elif isinstance(value, List):
+            return [parse_worker_field(item) for item in value]
+        else:
+            return [parse_worker_field(value)]

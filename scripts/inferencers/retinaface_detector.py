@@ -3,7 +3,7 @@ from typing import List
 import modules.shared as shared
 import torch
 from facexlib.detection import init_detection_model, retinaface
-from PIL import Image
+from PIL.Image import Image
 
 from scripts.entities.rect import Landmarks, Point, Rect
 from scripts.use_cases.face_detector import FaceDetector

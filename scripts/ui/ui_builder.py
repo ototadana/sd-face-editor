@@ -4,6 +4,7 @@ import gradio as gr
 from modules import script_callbacks, shared
 
 from scripts.entities.option import Option
+from scripts.entities.settings import Settings
 from scripts.io.util import inferencers_dir
 from scripts.ui import workflow_editor
 from scripts.ui.param_value_parser import ParamValueParser
@@ -94,7 +95,7 @@ class UiBuilder:
                 )
                 self.infotext_fields.append((face_margin, Option.add_prefix("face_margin")))
 
-                hide_face_size_option = shared.opts.data.get("face_editor_auto_face_size_by_model", False)
+                hide_face_size_option = Settings.auto_face_size_by_model()
                 face_size = gr.Slider(
                     label="Size of the face when recreating",
                     visible=not hide_face_size_option,
@@ -192,7 +193,7 @@ def on_ui_settings():
     section = ("face_editor", "Face Editor")
 
     shared.opts.add_option(
-        "face_editor_search_subdirectories",
+        Settings.SEARCH_SUBDIRECTORIES,
         shared.OptionInfo(False, "Search workflows in subdirectories", gr.Checkbox, section=section),
     )
 
@@ -203,29 +204,43 @@ def on_ui_settings():
                 additional_components.append(entry.name)
 
     shared.opts.add_option(
-        "face_editor_additional_components",
+        Settings.ADDITIONAL_COMPONENTS,
         shared.OptionInfo(
             [], "Additional components", gr.CheckboxGroup, {"choices": additional_components}, section=section
         ),
     )
 
     shared.opts.add_option(
-        "face_editor_save_original_on_detection_fail",
+        Settings.SAVE_ORIGINAL_ON_DETECTION_FAIL,
         shared.OptionInfo(True, "Save original image if face detection fails", gr.Checkbox, section=section),
     )
 
     shared.opts.add_option(
-        "face_editor_correct_tilt",
+        Settings.CORRECT_TILT,
         shared.OptionInfo(False, "Adjust tilt for detected faces", gr.Checkbox, section=section),
     )
 
     shared.opts.add_option(
-        "face_editor_auto_face_size_by_model",
+        Settings.AUTO_FACE_SIZE_BY_MODEL,
         shared.OptionInfo(False, "Auto face size adjustment by model", gr.Checkbox, section=section),
     )
 
+    upscalers = [upscaler.name for upscaler in shared.sd_upscalers]
+    if Option.DEFAULT_UPSCALER not in upscalers:
+        upscalers.append(Option.DEFAULT_UPSCALER)
     shared.opts.add_option(
-        "face_editor_script_index",
+        Settings.DEFAULT_UPSCALER,
+        shared.OptionInfo(
+            Option.DEFAULT_UPSCALER,
+            "Default upscaler",
+            gr.Dropdown,
+            {"choices": upscalers},
+            section=section,
+        ),
+    )
+
+    shared.opts.add_option(
+        Settings.SCRIPT_INDEX,
         shared.OptionInfo(
             99,
             "The position in postprocess at which this script will be executed; "

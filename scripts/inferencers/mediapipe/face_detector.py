@@ -2,7 +2,7 @@ from typing import List
 
 import mediapipe as mp
 import numpy as np
-from PIL import Image
+from PIL.Image import Image
 
 from scripts.entities.rect import Landmarks, Point, Rect
 from scripts.use_cases.face_detector import FaceDetector

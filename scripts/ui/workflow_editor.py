@@ -3,9 +3,9 @@ import os
 from typing import Any, Dict, List
 
 import gradio as gr
-from modules import shared
 from pydantic import ValidationError
 
+from scripts.entities.settings import Settings
 from scripts.io.util import workflows_dir
 from scripts.use_cases.workflow_manager import WorkflowManager
 
@@ -38,7 +38,7 @@ def save_workflow(name: str, workflow: str) -> str:
 
 
 def get_files() -> List[str]:
-    search_subdirectories = shared.opts.data.get("face_editor_search_subdirectories", False)
+    search_subdirectories = Settings.search_subdirectories()
     files = []
     for root, _, filenames in os.walk(workflows_dir):
         if not search_subdirectories and not os.path.samefile(root, workflows_dir):
