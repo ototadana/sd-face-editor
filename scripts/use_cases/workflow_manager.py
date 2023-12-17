@@ -35,14 +35,21 @@ class WorkflowManager:
                 if len(query) > 0:
                     query_matcher.validate(query)
 
-        if manager.workflow.frame_editors is None or len(manager.workflow.frame_editors) == 0:
-            manager.workflow.frame_editors = [Worker(name="Img2Img", params={})]
+        if manager.workflow.postprocessors is None or len(manager.workflow.postprocessors) == 0:
+            manager.workflow.postprocessors = [Worker(name="Img2Img", params={"strength": 0})]
 
-        for frame_editor in manager.workflow.frame_editors:
-            if frame_editor.name not in registry.frame_editor_names:
-                raise KeyError(f"frame_editor `{frame_editor.name}` does not exist")
+        manager.__validate_frame_editors(manager.workflow.preprocessors)
+        manager.__validate_frame_editors(manager.workflow.postprocessors)
 
         return manager
+
+    def __validate_frame_editors(cls, frame_editors: List[Worker]) -> List[Worker]:
+        if frame_editors is None:
+            return
+
+        for frame_editor in frame_editors:
+            if frame_editor.name not in registry.frame_editor_names:
+                raise KeyError(f"frame_editor `{frame_editor.name}` does not exist")
 
     def __init__(self, workflow: Workflow) -> None:
         self.workflow = workflow
@@ -92,15 +99,57 @@ class WorkflowManager:
             face.image = rotate_image(image, -angle) if correct_tilt else image
         return face.image
 
-    def edit(self, p: StableDiffusionProcessingImg2Img, faces: List[Face], option: Option, output_images: List[Image]):
+    def has_preprocessor(self) -> bool:
+        return self.workflow.preprocessors is not None and len(self.workflow.preprocessors) > 0
+
+    def has_postprocessor(self) -> bool:
+        return self.workflow.postprocessors is not None and len(self.workflow.postprocessors) > 0
+
+    def preprocess(
+        self, p: StableDiffusionProcessingImg2Img, faces: List[Face], option: Option, output_images: List[Image]
+    ) -> None:
+        if self.workflow.preprocessors is None:
+            return
+
+        self.__edit(self.workflow.preprocessors, p, faces, option, output_images)
+
+        if not self.__has_resize_tool(self.workflow.preprocessors) and (
+            p.init_images[0].width < p.width or p.init_images[0].height < p.height
+        ):
+            resize_tool = registry.frame_editors["resize"]
+            resize_tool.edit(p, faces, output_images, width=p.width, height=p.height, resize_mode=1)
+
+    def postprocess(
+        self, p: StableDiffusionProcessingImg2Img, faces: List[Face], option: Option, output_images: List[Image]
+    ) -> None:
+        if self.workflow.postprocessors is None:
+            return
+
         if option.show_intermediate_steps:
             output_images.append(p.init_images[0])
 
-        for frame_editor in self.workflow.frame_editors:
+        self.__edit(self.workflow.postprocessors, p, faces, option, output_images)
+
+    def __edit(
+        self,
+        frame_editors: List[Worker],
+        p: StableDiffusionProcessingImg2Img,
+        faces: List[Face],
+        option: Option,
+        output_images: List[Image],
+    ):
+        output_images = output_images if option.show_intermediate_steps else None
+        for frame_editor in frame_editors:
             print(f"frame_editor: {frame_editor.name}")
             fe = registry.frame_editors[frame_editor.name]
             params = frame_editor.params.copy()
-            fe.edit(p, faces, output_images if option.show_intermediate_steps else None, **params)
+            fe.edit(p, faces, output_images, **params)
+
+    def __has_resize_tool(self, frame_editors: List[Worker]) -> bool:
+        for frame_editor in frame_editors:
+            if frame_editor.name == "resize":
+                return True
+        return False
 
     def __correct_tilt(self, option: Option, angle: float) -> bool:
         if self.correct_tilt:
@@ -120,6 +169,7 @@ class WorkflowManager:
             params["use_minimal_area"] = option.use_minimal_area
             params["affected_areas"] = option.affected_areas
             params["tag"] = face.face_area.tag
+            params["face_area_total_pixels"] = face.face_area_total_pixels
 
             angle = face.get_angle()
             correct_tilt = self.__correct_tilt(option, angle)

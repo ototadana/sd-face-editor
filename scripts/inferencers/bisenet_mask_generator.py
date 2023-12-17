@@ -27,7 +27,8 @@ class BiSeNetMaskGenerator(MaskGenerator):
         affected_areas: List[str],
         mask_size: int,
         use_minimal_area: bool,
-        fallback_ratio: float = 0.25,
+        face_area_total_pixels: int,
+        fallback_ratio: float = 0.5,
         **kwargs,
     ) -> np.ndarray:
         original_face_image = face_image
@@ -60,7 +61,9 @@ class BiSeNetMaskGenerator(MaskGenerator):
         if w != 512 or h != 512:
             mask = cv2.resize(mask, dsize=(w, h))
 
-        if MaskGenerator.calculate_mask_coverage(mask) < fallback_ratio:
+        mask_coverage = MaskGenerator.calculate_mask_coverage(mask, face_area_total_pixels)
+        if mask_coverage < fallback_ratio:
+            print(f"BiSeNetMaskGenerator: mask_coverage={mask_coverage} < {fallback_ratio}")
             mask = self.fallback_mask_generator.generate_mask(
                 original_face_image, face_area_on_image, use_minimal_area=True
             )

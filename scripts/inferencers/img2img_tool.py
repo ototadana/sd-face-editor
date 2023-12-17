@@ -28,10 +28,10 @@ class Img2ImgTool(FrameEditor):
         no_mask=False,
         **kwargs,
     ) -> None:
-        if strength >= 0:
-            p.denoising_strength = strength
+        if strength == -1:
+            strength = p.denoising_strength if p.denoising_strength is not None and p.denoising_strength > 0 else 0.4
 
-        if p.denoising_strength == 0:
+        if strength == 0:
             return
 
         if p.scripts is None:
@@ -39,6 +39,7 @@ class Img2ImgTool(FrameEditor):
 
         with temp_attr(
             p,
+            denoising_strength=strength,
             prompt=pp if len(pp) > 0 else p.prompt,
             negative_prompt=np if len(np) > 0 else p.negative_prompt,
             refiner_switch_at=0 if use_refiner_model_only else p.refiner_switch_at,
@@ -56,7 +57,7 @@ class Img2ImgTool(FrameEditor):
                 proc = process_images(p)
 
         if output_images is not None:
-            if not no_mask:
+            if not no_mask and p.image_mask is not None:
                 entire_mask_image = numpy.array(p.image_mask)
                 entire_image = numpy.array(p.init_images[0])
                 add_image(output_images, MaskGenerator.to_masked_image(entire_mask_image, entire_image))

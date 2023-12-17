@@ -9,7 +9,8 @@ import modules.scripts as scripts
 import modules.shared as shared
 import numpy as np
 from modules.processing import Processed, StableDiffusionProcessing, StableDiffusionProcessingImg2Img, create_infotext
-from PIL import Image
+from PIL import Image as PILImage
+from PIL.Image import Image
 
 from scripts.entities.definitions import Rule
 from scripts.entities.face import Face
@@ -110,11 +111,9 @@ class ImageProcessor:
         if hasattr(p.init_images[0], "mode") and p.init_images[0].mode != "RGB":
             p.init_images[0] = p.init_images[0].convert("RGB")
 
-        entire_image = np.array(p.init_images[0])
         faces, message = self.__crop_face(p.init_images[0], option)
         faces = faces[: option.max_face_count]
         faces = sorted(faces, key=attrgetter("center"))
-        entire_mask_image = np.zeros_like(entire_image)
 
         entire_width = (p.width // 8) * 8
         entire_height = (p.height // 8) * 8
@@ -129,7 +128,7 @@ class ImageProcessor:
 
         output_images = []
         if option.show_intermediate_steps:
-            output_images.append(self.__show_detected_faces(np.copy(entire_image), faces, p, message))
+            output_images.append(self.__show_detected_faces(np.array(p.init_images[0]), faces, p, message))
 
         print(f"number of faces: {len(faces)}.  ")
         if (
@@ -144,6 +143,16 @@ class ImageProcessor:
                 all_seeds=[p.seed],
                 infotexts=[pre_proc_infotext],
             )
+
+        if self.workflow.has_preprocessor():
+            self.workflow.preprocess(p, faces, option, output_images)
+            faces, message = self.__crop_face(p.init_images[0], option)
+            faces = sorted(faces, key=attrgetter("center"))
+            if option.show_intermediate_steps:
+                output_images.append(self.__show_detected_faces(np.array(p.init_images[0]), faces, p, message))
+
+        entire_image = np.array(p.init_images[0])
+        entire_mask_image = np.zeros_like(entire_image)
 
         wildcards_script = self.__get_wildcards_script(p)
         face_prompts = self.__get_face_prompts(len(faces), option.prompt_for_face, entire_prompt)
@@ -218,17 +227,17 @@ class ImageProcessor:
         p.all_prompts = entire_all_prompts
         p.width = entire_width
         p.height = entire_height
-        simple_composite_image = Image.fromarray(entire_image)
+        simple_composite_image = PILImage.fromarray(entire_image)
         p.init_images = [simple_composite_image]
         p.mask_blur = option.mask_blur
         p.inpainting_mask_invert = 1
         p.inpainting_fill = 1
-        p.image_mask = Image.fromarray(entire_mask_image)
+        p.image_mask = PILImage.fromarray(entire_mask_image)
         p.do_not_save_samples = True
 
         p.extra_generation_params.update(params)
         p.denoising_strength = option.strength2 if option.strength2 > 0 else 0
-        self.workflow.edit(p, faces, option, output_images)
+        self.workflow.postprocess(p, faces, option, output_images)
 
         if original_size is not None:
             p.width, p.height = original_size
@@ -271,7 +280,7 @@ class ImageProcessor:
         criteria = rule.when.criteria if rule.when is not None and rule.when.criteria is not None else ""
         debug_image[0 : h // 2, w // 2 :] = resize(add_comment(add_comment(face_image, feature), criteria, True))
 
-        coverage = MaskGenerator.calculate_mask_coverage(mask_image) * 100
+        coverage = MaskGenerator.calculate_mask_coverage(mask_image, face.face_area_total_pixels) * 100
         mask_info = f"size:{option.mask_size}, blur:{option.mask_blur}, cov:{coverage:.0f}%"
         debug_image[h // 2 :, 0 : w // 2] = resize(
             add_comment(MaskGenerator.to_masked_image(mask_image, face_image), mask_info)
@@ -281,7 +290,7 @@ class ImageProcessor:
         face_bg = (original_face * (1 - (mask_image / 255.0))).astype("uint8")
         debug_image[h // 2 :, w // 2 :] = resize(face_fg + face_bg)
 
-        output_images.append(Image.fromarray(debug_image))
+        output_images.append(PILImage.fromarray(debug_image))
 
     def __show_detected_faces(
         self, entire_image: np.ndarray, faces: List[Face], p: StableDiffusionProcessingImg2Img, message: str
@@ -294,7 +303,7 @@ class ImageProcessor:
                 face.top : face.bottom,
                 face.left : face.right,
             ] = face_image
-        return Image.fromarray(add_comment(add_comment(entire_image, f"{len(faces)}"), message, True))
+        return PILImage.fromarray(add_comment(add_comment(entire_image, f"{len(faces)}"), message, True))
 
     def __get_wildcards_script(self, p: StableDiffusionProcessingImg2Img):
         if p.scripts is None:
@@ -366,7 +375,7 @@ class ImageProcessor:
     def __extend_infos(self, infos: list, image_count: int) -> None:
         infos.extend([infos[0]] * (image_count - len(infos)))
 
-    def __crop_face(self, image: Image.Image, option: Option) -> (List[Face], str):
+    def __crop_face(self, image: Image, option: Option) -> (List[Face], str):
         face_areas = self.workflow.detect_faces(image, option)
         return self.__crop(
             image, face_areas, option.face_margin, option.face_size, option.ignore_larger_faces, option.upscaler
@@ -374,7 +383,7 @@ class ImageProcessor:
 
     def __crop(
         self,
-        image: Image.Image,
+        image: Image,
         face_areas: List[Rect],
         face_margin: float,
         face_size: int,

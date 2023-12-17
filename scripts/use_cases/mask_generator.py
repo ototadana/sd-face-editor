@@ -30,10 +30,9 @@ class MaskGenerator(ABC):
         return image
 
     @staticmethod
-    def calculate_mask_coverage(mask: np.ndarray):
+    def calculate_mask_coverage(mask: np.ndarray, total_pixels: int):
         gray_mask = cv2.cvtColor(mask, cv2.COLOR_RGB2GRAY)
         non_black_pixels = np.count_nonzero(gray_mask)
-        total_pixels = gray_mask.size
         return non_black_pixels / total_pixels
 
     @staticmethod

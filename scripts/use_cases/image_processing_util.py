@@ -2,15 +2,16 @@ from typing import List, Union
 
 import cv2
 import numpy as np
-from PIL import Image
+from PIL import Image as PILImage
+from PIL.Image import Image
 
 
-def rotate_image(image: Image.Image, angle: float) -> Image.Image:
+def rotate_image(image: Image, angle: float) -> Image:
     if image is None:
         return None
     if angle == 0:
         return image
-    return Image.fromarray(rotate_array(np.array(image), angle))
+    return PILImage.fromarray(rotate_array(np.array(image), angle))
 
 
 def rotate_array(image: np.ndarray, angle: float) -> np.ndarray:
@@ -49,11 +50,11 @@ def add_comment(image: np.ndarray, comment: str, top: bool = False) -> np.ndarra
     return image
 
 
-def add_image(images: List[Image.Image], image: Union[Image.Image, np.ndarray]) -> List[Image.Image]:
+def add_image(images: List[Image], image: Union[Image, np.ndarray]) -> List[Image]:
     if image is None:
         return images
 
     if isinstance(image, np.ndarray):
-        image = Image.fromarray(image)
+        image = PILImage.fromarray(image)
     images.append(image)
     return images

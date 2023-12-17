@@ -15,4 +15,4 @@ class NoOpProcessor(FaceProcessor):
         p: StableDiffusionProcessingImg2Img,
         **kwargs,
     ) -> Image:
-        return None
+        return face.image

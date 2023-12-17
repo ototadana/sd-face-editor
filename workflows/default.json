@@ -6,7 +6,7 @@
             "mask_generator": {
                 "name": "BiSeNet",
                 "params": {
-                    "fallback_ratio": 0.1
+                    "fallback_ratio": 0.5
                 }
             }
         }

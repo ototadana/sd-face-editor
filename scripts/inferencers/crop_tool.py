@@ -26,8 +26,11 @@ class CropTool(FrameEditor):
         reference_face: Dict[str, str] = {},
         aspect_ratio: str = "auto",
         margin: float = 1.0,
+        top: int = 0,
+        bottom: int = 0,
+        dry_run: bool = False,
         **kwargs,
-    ) -> None:
+    ) -> Rect:
         if len(p.init_images) == 0:
             return
 
@@ -43,15 +46,16 @@ class CropTool(FrameEditor):
                 target_faces.append(face)
 
         if len(target_faces) == 0:
-            return
+            return None
 
         overlay = np.array(frame).copy()
         output_image = np.array(frame).copy()
 
         face_areas = self.__get_area(target_faces, frame)
         rect = self.__add_margin(face_areas, margin, frame)
-        self.__rectangle(overlay, rect, (0, 255, 0), -1)
-        self.__rectangle(overlay, face_areas, (255, 0, 0), 10)
+        if not dry_run:
+            self.__rectangle(overlay, rect, (0, 255, 0), -1)
+            self.__rectangle(overlay, face_areas, (255, 0, 0), 10)
 
         if mode == "remove":
             if condition.is_left():
@@ -64,12 +68,19 @@ class CropTool(FrameEditor):
                 rect = Rect(0, 0, frame.width, rect.top)
 
         if rect.width == 0 or rect.height == 0:
-            return
+            return None
 
         rect = self.__get_rect_by_aspect_ratio(rect, aspect_ratio, frame)
+        if dry_run:
+            return rect
+
+        if bottom - top > 0:
+            rect = Rect(rect.left, top, rect.right, bottom)
+
         self.__rectangle(overlay, rect, (0, 255, 255), 10)
         p.init_images[0] = frame.crop(rect.to_tuple())
-        p.image_mask = p.image_mask.crop(rect.to_tuple())
+        if p.image_mask is not None:
+            p.image_mask = p.image_mask.crop(rect.to_tuple())
 
         if output_images is not None:
             mask = np.zeros_like(output_image)
@@ -84,7 +95,9 @@ class CropTool(FrameEditor):
             output_image = add_comment(output_image, f"crop: {rect.width}x{rect.height} ({aspect_ratio})")
             add_image(output_images, output_image)
 
-    def __rectangle(self, image: Image, rect: Rect, color: Tuple[int, int, int], thickness: int = 10) -> Image:
+        return rect
+
+    def __rectangle(self, image: Image, rect: Rect, color: Tuple[int, int, int], thickness: int = 10) -> None:
         left, top, right, bottom = rect.to_tuple()
         cv2.rectangle(image, (left, top), (right, bottom), color, thickness)
 
@@ -128,7 +141,7 @@ class CropTool(FrameEditor):
         if margin == 0:
             return rect
         size = min(rect.width, rect.height)
-        margin = round(size * margin) - size
+        margin = (round(size * margin) - size) // 2
         left = max(0, rect.left - margin)
         top = max(0, rect.top - margin)
         right = min(frame.width, rect.right + margin)

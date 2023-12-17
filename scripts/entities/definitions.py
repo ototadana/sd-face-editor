@@ -26,6 +26,15 @@ def parse_worker_field(value: Union[str, Dict, Worker]) -> Worker:
     return value
 
 
+def validate_frame_editors(value) -> List[Worker]:
+    if value is None:
+        return []
+    elif isinstance(value, List):
+        return [parse_worker_field(item) for item in value]
+    else:
+        return [parse_worker_field(value)]
+
+
 class Condition(BaseModel):
     tag: Optional[str]
     criteria: Optional[str]
@@ -116,7 +125,8 @@ class Rule(BaseModel):
 class Workflow(BaseModel):
     face_detector: Union[Worker, List[Worker]]
     rules: Optional[Union[Rule, List[Rule]]]
-    frame_editors: Optional[Union[Worker, List[Worker]]]
+    preprocessors: Optional[Union[Worker, List[Worker]]]
+    postprocessors: Optional[Union[Worker, List[Worker]]]
 
     @validator("face_detector", pre=True)
     def parse_face_detector(cls, value):
@@ -133,11 +143,10 @@ class Workflow(BaseModel):
             return [value]
         return value
 
-    @validator("frame_editors", pre=True)
-    def parse_frame_editors(cls, value):
-        if value is None:
-            return []
-        elif isinstance(value, List):
-            return [parse_worker_field(item) for item in value]
-        else:
-            return [parse_worker_field(value)]
+    @validator("preprocessors", pre=True)
+    def parse_preprocessors(cls, value):
+        return validate_frame_editors(value)
+
+    @validator("postprocessors", pre=True)
+    def parse_postprocessors(cls, value):
+        return validate_frame_editors(value)

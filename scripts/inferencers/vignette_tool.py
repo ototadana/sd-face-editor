@@ -2,7 +2,8 @@ from typing import List
 
 import numpy as np
 from modules.processing import StableDiffusionProcessingImg2Img
-from PIL import Image
+from PIL import Image as PILImage
+from PIL.Image import Image
 
 from scripts.entities.face import Face
 from scripts.inferencers.vignette_mask_generator import VignetteMaskGenerator
@@ -18,7 +19,7 @@ class VignetteTool(FrameEditor):
         self,
         p: StableDiffusionProcessingImg2Img,
         faces: List[Face],
-        output_images: List[Image.Image],
+        output_images: List[Image],
         sigma: float = 400,
         **kwargs,
     ) -> None:
@@ -29,7 +30,7 @@ class VignetteTool(FrameEditor):
 
         frame = np.array(p.init_images[0])
         mask = mask_generator.generate_mask(frame, (0, 0, 0, 0), False, sigma, keep_safe_area=False)
-        p.init_images[0] = Image.fromarray((frame * (mask / 255.0)).astype("uint8"))
+        p.init_images[0] = PILImage.fromarray((frame * (mask / 255.0)).astype("uint8"))
 
         if output_images is not None:
             output_image = add_comment(np.array(p.init_images[0]), f"vignette: sigma: {sigma}")
