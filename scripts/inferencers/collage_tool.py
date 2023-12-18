@@ -36,12 +36,14 @@ class CollageTool(FrameEditor):
         for crop_param in crop_params:
             p.init_images = [frame]
             p.image_mask = image_mask
+            crop_param["margin"] = (
+                2.0 if crop_param.get("margin", None) is None else max(float(crop_param["margin"]), 1.2)
+            )
             rect = crop_tool.edit(p, faces, output_images, dry_run=True, **crop_param)
             if rect is not None:
                 min_top = min(min_top, rect.top)
                 max_bottom = max(max_bottom, rect.bottom)
-                margin_ratio = 1.0 if crop_param["margin"] is None else crop_param["margin"]
-                margin = (rect.width - round(rect.width / margin_ratio)) // 2
+                margin = (rect.width - round(rect.width / crop_param["margin"])) // 2
                 min_margin = min(min_margin, margin)
 
         cropped_images = []
