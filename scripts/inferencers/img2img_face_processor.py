@@ -4,6 +4,7 @@ from modules.processing import StableDiffusionProcessingImg2Img, process_images
 from PIL.Image import Image
 
 from scripts.entities.face import Face
+from scripts.entities.option import Option
 from scripts.inferencers.temp_settings import temp_attr, temp_dict
 from scripts.use_cases.face_processor import FaceProcessor
 
@@ -17,11 +18,19 @@ class Img2ImgFaceProcessor(FaceProcessor):
         face: Face,
         p: StableDiffusionProcessingImg2Img,
         strength1: Union[float, int],
+        option: Option,
         pp: str = "",
         np: str = "",
         use_refiner_model_only=False,
+        ignore_larger_faces=None,
         **kwargs,
     ) -> Image:
+        face_size = option.face_size
+        ignore_larger_faces = ignore_larger_faces if ignore_larger_faces is not None else option.ignore_larger_faces
+        if ignore_larger_faces and face.width > face_size:
+            face.info = f"ignore larger face:\n {face.width}x{face.height} > {face_size}x{face_size}"
+            return face.image
+
         p.init_images = [face.image]
         p.width = face.image.width
         p.height = face.image.height

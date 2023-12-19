@@ -1,6 +1,7 @@
 from typing import List
 
 import cv2
+import modules.shared as shared
 import numpy as np
 from modules.processing import StableDiffusionProcessingImg2Img
 from PIL.Image import Image
@@ -61,6 +62,7 @@ class WorkflowManager:
         for fd in self.workflow.face_detector:
             face_detector = registry.face_detectors[fd.name]
             params = fd.params.copy()
+            params["option"] = option
             params["confidence"] = option.confidence
             results.extend(face_detector.detect_faces(image, **params))
 
@@ -88,6 +90,7 @@ class WorkflowManager:
             fp = job.face_processor
             face_processor = registry.face_processors[fp.name]
             params = fp.params.copy()
+            params["option"] = option
             params["strength1"] = option.strength1
 
             angle = face.get_angle()
@@ -112,11 +115,20 @@ class WorkflowManager:
             return
 
         self.__edit(self.workflow.preprocessors, p, faces, option, output_images)
+        if p.init_images[0].width == p.width and p.init_images[0].height == p.height:
+            return
 
+        default_size = 1024 if getattr(shared.sd_model, "is_sdxl", False) else 512
         if not self.__has_resize_tool(self.workflow.preprocessors) and (
-            p.init_images[0].width < p.width or p.init_images[0].height < p.height
+            max(p.init_images[0].width, p.init_images[0].height) < default_size
         ):
             resize_tool = registry.frame_editors["resize"]
+            if p.init_images[0].width > p.init_images[0].height:
+                p.width = default_size
+                p.height = round(default_size * p.init_images[0].height / p.init_images[0].width)
+            else:
+                p.width = round(default_size * p.init_images[0].width / p.init_images[0].height)
+                p.height = default_size
             resize_tool.edit(p, faces, output_images, width=p.width, height=p.height, resize_mode=1)
 
     def postprocess(
@@ -143,6 +155,7 @@ class WorkflowManager:
             print(f"frame_editor: {frame_editor.name}")
             fe = registry.frame_editors[frame_editor.name]
             params = frame_editor.params.copy()
+            params["option"] = option
             fe.edit(p, faces, output_images, **params)
 
     def __has_resize_tool(self, frame_editors: List[Worker]) -> bool:

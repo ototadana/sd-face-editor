@@ -267,7 +267,11 @@ class ImageProcessor:
         h, w = original_face.shape[:2]
         debug_image = np.zeros_like(original_face)
 
-        tag = f"{face.face_area.tag} ({face.face_area.width}x{face.face_area.height})"
+        if face.info != "":
+            info = face.info
+        else:
+            info = f"{face.face_area.tag} ({face.face_area.width}x{face.face_area.height})"
+
         attributes = str(face.face_area.attributes) if face.face_area.attributes else ""
         if not attributes:
             attributes = option.upscaler if option.upscaler != Option.DEFAULT_UPSCALER else ""
@@ -275,7 +279,7 @@ class ImageProcessor:
         def resize(img: np.ndarray):
             return cv2.resize(img, (w // 2, h // 2))
 
-        debug_image[0 : h // 2, 0 : w // 2] = resize(add_comment(add_comment(original_face, attributes), tag, True))
+        debug_image[0 : h // 2, 0 : w // 2] = resize(add_comment(add_comment(original_face, attributes), info, True))
 
         criteria = rule.when.criteria if rule.when is not None and rule.when.criteria is not None else ""
         debug_image[0 : h // 2, w // 2 :] = resize(add_comment(add_comment(face_image, feature), criteria, True))
@@ -377,9 +381,7 @@ class ImageProcessor:
 
     def __crop_face(self, image: Image, option: Option) -> (List[Face], str):
         face_areas = self.workflow.detect_faces(image, option)
-        return self.__crop(
-            image, face_areas, option.face_margin, option.face_size, option.ignore_larger_faces, option.upscaler
-        )
+        return self.__crop(image, face_areas, option.face_margin, option.face_size, option.upscaler)
 
     def __crop(
         self,
@@ -387,7 +389,6 @@ class ImageProcessor:
         face_areas: List[Rect],
         face_margin: float,
         face_size: int,
-        ignore_larger_faces: bool,
         upscaler: str,
     ) -> (List[Face], str):
         image = np.array(image, dtype=np.uint8)
@@ -396,9 +397,6 @@ class ImageProcessor:
         areas: List[Face] = []
         for face_area in face_areas:
             face = Face(image, face_area, face_margin, face_size, upscaler)
-            if ignore_larger_faces and face.width > face_size:
-                message = f"ignore larger face: {face.width}x{face.height} > {face_size}x{face_size}"
-                continue
             areas.append(face)
 
         if len(areas) == 0:

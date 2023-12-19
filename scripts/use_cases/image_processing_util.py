@@ -28,25 +28,29 @@ def rotate_array(image: np.ndarray, angle: float) -> np.ndarray:
 def add_comment(image: np.ndarray, comment: str, top: bool = False) -> np.ndarray:
     image = np.copy(image)
     h, _, _ = image.shape
-    pos = (10, 48) if top else (10, h - 16)
-    cv2.putText(
-        image,
-        text=comment,
-        org=pos,
-        fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-        fontScale=1.2,
-        color=(0, 0, 0),
-        thickness=10,
-    )
-    cv2.putText(
-        image,
-        text=comment,
-        org=pos,
-        fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-        fontScale=1.2,
-        color=(255, 255, 255),
-        thickness=2,
-    )
+    lines = comment.split("\n")
+    dy = 40  # distance between lines
+    for i, line in enumerate(reversed(lines) if not top else lines):
+        y = (48 + i * dy) if top else (h - 16 - i * dy)
+        pos = (10, y)
+        cv2.putText(
+            image,
+            text=line,
+            org=pos,
+            fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+            fontScale=1.2,
+            color=(0, 0, 0),
+            thickness=10,
+        )
+        cv2.putText(
+            image,
+            text=line,
+            org=pos,
+            fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+            fontScale=1.2,
+            color=(255, 255, 255),
+            thickness=2,
+        )
     return image
 
 

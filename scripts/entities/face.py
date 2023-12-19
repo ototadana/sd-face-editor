@@ -29,6 +29,7 @@ class Face:
         self.landmarks_on_image = self.__get_landmarks_on_image()
         l, t, r, b = self.face_area_on_image
         self.face_area_total_pixels = (r - l) * (b - t)
+        self.info = ""
 
     def __get_face_area_on_image(self):
         left = int((self.face_area.left - self.left) * self.scale_factor)
