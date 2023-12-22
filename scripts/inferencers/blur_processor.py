@@ -14,7 +14,7 @@ class BlurProcessor(FaceProcessor):
         self,
         face: Face,
         p: StableDiffusionProcessingImg2Img,
-        radius=20,
+        radius: float = 20,
         **kwargs,
     ) -> Image:
         return face.image.filter(filter=ImageFilter.GaussianBlur(radius))

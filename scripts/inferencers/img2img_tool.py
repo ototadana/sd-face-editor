@@ -26,6 +26,7 @@ class Img2ImgTool(FrameEditor):
         use_refiner_model_only=False,
         strength=-1,
         no_mask=False,
+        keep_aspect_ratio=True,
         **kwargs,
     ) -> None:
         if strength == -1:
@@ -37,6 +38,12 @@ class Img2ImgTool(FrameEditor):
         if p.scripts is None:
             p.scripts = scripts.ScriptRunner()
 
+        if keep_aspect_ratio:
+            aspect_ratio = p.init_images[0].width / p.init_images[0].height
+            height = int(p.width / aspect_ratio)
+        else:
+            height = p.height
+
         with temp_attr(
             p,
             denoising_strength=strength,
@@ -44,6 +51,7 @@ class Img2ImgTool(FrameEditor):
             negative_prompt=np if len(np) > 0 else p.negative_prompt,
             refiner_switch_at=0 if use_refiner_model_only else p.refiner_switch_at,
             image_mask=None if no_mask else p.image_mask,
+            height=height,
         ):
             if (
                 getattr(p, "enable_hr", False)
