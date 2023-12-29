@@ -32,7 +32,7 @@ class WorkflowManager:
                 if job.mask_generator.name not in registry.mask_generator_names:
                     raise KeyError(f"mask_generator `{job.mask_generator.name}` does not exist")
             if rule.when is not None and rule.when.tag is not None and "?" in rule.when.tag:
-                _, query = cls.__parse_tag(rule.when.tag)
+                _, query = condition_matcher.parse_tag(rule.when.tag)
                 if len(query) > 0:
                     query_matcher.validate(query)
 
