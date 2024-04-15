@@ -263,7 +263,7 @@ By specifying an **object** as the first argument of args as above, parameters c
    "script_args": [{"prompt_for_face": "smile"}],
 ```
 
-- See [source code](https://github.com/ototadana/sd-face-editor/blob/main/scripts/entities/option.py) for available keywords.
+- See [source code](https://github.com/ototadana/sd-face-editor/blob/main/face_editor/entities/option.py) for available keywords.
 
 ---
 ## Workflow Editor
@@ -320,14 +320,14 @@ In this project, the components used in the workflow are also referred to as "in
 > **Note:** When using "Additional components", ensure that the features you want to use are enabled in the "Additional Components" section of the "Settings" tab under "Face Editor". For detailed descriptions and usage of each component, please refer to the corresponding README.
 
 ### General components
-- [General components](scripts/inferencers/README.md)
+- [General components](face_editor/inferencers/README.md)
 
 ### Additional components
-- [Anime Segmentation components](scripts/inferencers/anime_segmentation/README.md)
-- [InsightFace components](scripts/inferencers/insightface/README.md)
-- [Mediapipe components](scripts/inferencers/mediapipe/README.md)
-- [OpenMMLab components](scripts/inferencers/openmmlab/README.md)
-- [YOLO components](scripts/inferencers/yolo/README.md)
+- [Anime Segmentation components](face_editor/inferencers/anime_segmentation/README.md)
+- [InsightFace components](face_editor/inferencers/insightface/README.md)
+- [Mediapipe components](face_editor/inferencers/mediapipe/README.md)
+- [OpenMMLab components](face_editor/inferencers/openmmlab/README.md)
+- [YOLO components](face_editor/inferencers/yolo/README.md)
 
 
 ### Workflow JSON Reference
