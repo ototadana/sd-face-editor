@@ -2,10 +2,10 @@ import modules.scripts as scripts
 import modules.shared as shared
 from modules.processing import StableDiffusionProcessing, StableDiffusionProcessingImg2Img, process_images
 
-from scripts.entities.option import Option
-from scripts.ui.ui_builder import UiBuilder
-from scripts.use_cases.image_processor import ImageProcessor
-from scripts.use_cases.workflow_manager import WorkflowManager
+from face_editor.entities.option import Option
+from face_editor.ui.ui_builder import UiBuilder
+from face_editor.use_cases.image_processor import ImageProcessor
+from face_editor.use_cases.workflow_manager import WorkflowManager
 
 
 class Script(scripts.Script):
