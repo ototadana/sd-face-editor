@@ -9,6 +9,8 @@ class Worker(BaseModel):
 
     @root_validator(pre=True)
     def default_params(cls, values):
+        if isinstance(values, list):
+            values = {str(i): v for i, v in enumerate(values)}
         if "params" not in values or values["params"] is None:
             values["params"] = {}
         return values
